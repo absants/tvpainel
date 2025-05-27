@@ -5,6 +5,8 @@ import {
   Container,
   Typography,
   Paper,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useEffect, useState } from "react";
@@ -27,69 +29,65 @@ const mockCampanhas = [
   },
 ];
 
-export default function CampanhaDetalhePage() {
+export default function CampanhaDetalhe() {
   const router = useRouter();
   const { id } = router.query;
-
-  const [campanha, setCampanha] = useState<any>(null);
+  const [campanha, setCampanha] = useState(null);
 
   useEffect(() => {
     if (id) {
       const encontrada = mockCampanhas.find((c) => c.id === id);
-      setCampanha(encontrada || null);
+      setCampanha(encontrada);
     }
   }, [id]);
 
-  if (!campanha) {
-    return (
-      <Container sx={{ mt: 6 }}>
-        <Typography>Carregando campanha...</Typography>
-      </Container>
-    );
-  }
+  const handleToggleStatus = () => {
+    if (campanha) {
+      const novoStatus = campanha.status === "Ativa" ? "Inativa" : "Ativa";
+      setCampanha({ ...campanha, status: novoStatus });
+    }
+  };
+
+  if (!campanha) return <Typography>Carregando campanha...</Typography>;
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 6 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Box sx={{ mb: 3 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => router.push("/dashboard")}
-          >
-            Voltar
-          </Button>
-        </Box>
+    <Container>
+      <Button
+        variant="outlined"
+        startIcon={<ArrowBackIcon />}
+        onClick={() => router.push("/dashboard")}
+        sx={{ mt: 2 }}
+      >
+        Voltar ao Dashboard
+      </Button>
 
-        <Typography variant="h5" fontWeight={600} gutterBottom>
+      <Paper sx={{ p: 4, mt: 3 }}>
+        <Typography variant="h5" gutterBottom>
           {campanha.nome}
         </Typography>
+        <Typography>Cliente: {campanha.cliente}</Typography>
+        <Typography>Status atual: {campanha.status}</Typography>
 
-        <Typography>
-          <strong>Cliente:</strong> {campanha.cliente}
-        </Typography>
-        <Typography>
-          <strong>Status:</strong>{" "}
-          <span style={{ color: campanha.status === "Ativa" ? "#1D7BBA" : "#999" }}>
-            {campanha.status}
-          </span>
-        </Typography>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={campanha.status === "Ativa"}
+              onChange={handleToggleStatus}
+            />
+          }
+          label="Ativar campanha"
+          sx={{ mt: 2 }}
+        />
 
-        <Box sx={{ mt: 3 }}>
-          <Typography gutterBottom>
-            <strong>Vídeo:</strong> {campanha.video}
-          </Typography>
-          <Button
-            variant="contained"
-            href={`/uploads/${campanha.video}`}
-            download
-            sx={{
-              backgroundColor: "#1D7BBA",
-              ":hover": { backgroundColor: "#156b9c" },
-            }}
-          >
-            Baixar vídeo
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          href={`/${campanha.video}`}
+          download
+          sx={{ mt: 3 }}
+        >
+          Baixar vídeo da campanha
+        </Button>
       </Paper>
     </Container>
   );
