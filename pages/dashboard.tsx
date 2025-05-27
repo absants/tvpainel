@@ -1,3 +1,6 @@
+// pages/dashboard.tsx
+
+import Link from "next/link";
 import {
   Box,
   Button,
@@ -9,50 +12,48 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TableContainer,
 } from "@mui/material";
 import { useRouter } from "next/router";
+import { useState } from "react";
 
-const campanhasMock = [
-  { id: 1, cliente: "Cliente A", campanha: "Black Friday", status: "Ativa" },
-  { id: 2, cliente: "Cliente B", campanha: "Inverno 2024", status: "Inativa" },
-  { id: 3, cliente: "Cliente C", campanha: "Verão Azul", status: "Ativa" },
+const mockCampanhas = [
+  {
+    id: "1",
+    cliente: "Cliente A",
+    nome: "Campanha Black Friday",
+    status: "Ativa",
+  },
+  {
+    id: "2",
+    cliente: "Cliente B",
+    nome: "Campanha Verão",
+    status: "Inativa",
+  },
 ];
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [campanhas, setCampanhas] = useState(mockCampanhas);
 
-  const handleRowClick = (id: number) => {
+  const handleRowClick = (id: string) => {
     router.push(`/campanhas/${id}`);
   };
 
   return (
-    <Container sx={{ mt: 6 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Typography variant="h4" fontWeight={600}>
-          Campanhas
-        </Typography>
-
-        <Button
-          variant="contained"
-          onClick={() => router.push("/nova-campanha")}
-          sx={{
-            backgroundColor: "#1D7BBA",
-            ":hover": { backgroundColor: "#156b9c" },
-          }}
-        >
-          + Nova Campanha
-        </Button>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" fontWeight="bold">Dashboard</Typography>
+        <Box display="flex" gap={2}>
+          <Link href="/nova-campanha" passHref>
+            <Button variant="contained" color="primary">+ Nova Campanha</Button>
+          </Link>
+          <Link href="/player" passHref>
+            <Button variant="outlined" color="secondary">Ver Tela do Player</Button>
+          </Link>
+        </Box>
       </Box>
 
-      <TableContainer component={Paper}>
+      <Paper>
         <Table>
           <TableHead>
             <TableRow>
@@ -62,23 +63,21 @@ export default function DashboardPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {campanhasMock.map((row) => (
+            {campanhas.map((campanha) => (
               <TableRow
-                key={row.id}
+                key={campanha.id}
                 hover
                 sx={{ cursor: "pointer" }}
-                onClick={() => handleRowClick(row.id)}
+                onClick={() => handleRowClick(campanha.id)}
               >
-                <TableCell>{row.cliente}</TableCell>
-                <TableCell>{row.campanha}</TableCell>
-                <TableCell sx={{ color: row.status === "Ativa" ? "#1D7BBA" : "#999" }}>
-                  {row.status}
-                </TableCell>
+                <TableCell>{campanha.cliente}</TableCell>
+                <TableCell>{campanha.nome}</TableCell>
+                <TableCell>{campanha.status}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
+      </Paper>
     </Container>
   );
 }
