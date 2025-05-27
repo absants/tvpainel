@@ -1,0 +1,5 @@
+# Evitar subir build ou libs gigantes
+.next
+node_modules
+*.log
+*.gz
