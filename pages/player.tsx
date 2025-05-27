@@ -1,83 +1,68 @@
 // pages/player.tsx
 
-import { useEffect, useRef, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useEffect, useRef, useState } from "react";
 
 export default function PlayerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [playlist] = useState<string[]>([
-    '/videos/video1.mp4',
-    '/videos/video2.mp4'
-  ]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [currentTime, setCurrentTime] = useState<string>('');
+  const videos = ["/videos/video1.mp4", "/videos/video2.mp4", "/videos/video3.mp4"];
 
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}`);
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const handleEnded = () => {
+      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
     };
-    const interval = setInterval(updateTime, 1000);
-    updateTime();
-    return () => clearInterval(interval);
-  }, []);
+
+    videoElement.addEventListener("ended", handleEnded);
+    return () => {
+      videoElement.removeEventListener("ended", handleEnded);
+    };
+  }, [videos]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
     if (videoElement) {
       videoElement.load();
-      videoElement.play();
+      videoElement.play().catch(() => {});
     }
   }, [currentVideoIndex]);
 
-  const handleVideoEnd = () => {
-    setCurrentVideoIndex((prev) => (prev + 1) % playlist.length);
+  const getCurrentTime = () => {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
-    <Box
-      sx={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: 'black'
-      }}
-    >
-      <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <video
-          ref={videoRef}
-          width="100%"
-          height="100%"
-          onEnded={handleVideoEnd}
-          style={{ objectFit: 'cover' }}
-          controls={false}
-          autoPlay
-          muted
-        >
-          <source src={playlist[currentVideoIndex]} type="video/mp4" />
-        </video>
-      </Box>
-      <Box
-        sx={{
-          height: '60px',
-          width: '100%',
-          bgcolor: '#1D7BBA',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          px: 3
+    <div style={{ height: "100vh", width: "100vw", margin: 0, padding: 0, overflow: "hidden" }}>
+      <video
+        ref={videoRef}
+        src={videos[currentVideoIndex]}
+        autoPlay
+        muted
+        controls={false}
+        style={{
+          width: "100%",
+          height: "calc(100vh - 40px)",
+          objectFit: "cover",
+        }}
+      />
+      <footer
+        style={{
+          height: 40,
+          backgroundColor: "#1D7BBA",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 20px",
+          fontSize: 16,
         }}
       >
-        <Typography variant="h6" color="white">
-          TV Painel
-        </Typography>
-        <Typography variant="h6" color="white">
-          {currentTime}
-        </Typography>
-      </Box>
-    </Box>
+        <div>TV Painel</div>
+        <div>{getCurrentTime()}</div>
+      </footer>
+    </div>
   );
 }
