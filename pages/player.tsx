@@ -1,11 +1,24 @@
-// pages/player.tsx
-
 import { useEffect, useRef, useState } from "react";
 
 export default function PlayerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState("");
+
   const videos = ["/videos/video1.mp4", "/videos/video2.mp4", "/videos/video3.mp4"];
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const date = now.toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'short' });
+      setCurrentTime(`${date} • ${time}`);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -29,13 +42,8 @@ export default function PlayerPage() {
     }
   }, [currentVideoIndex]);
 
-  const getCurrentTime = () => {
-    const now = new Date();
-    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
   return (
-    <div style={{ height: "100vh", width: "100vw", margin: 0, padding: 0, overflow: "hidden" }}>
+    <div style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}>
       <video
         ref={videoRef}
         src={videos[currentVideoIndex]}
@@ -44,25 +52,34 @@ export default function PlayerPage() {
         controls={false}
         style={{
           width: "100%",
-          height: "calc(100vh - 40px)",
+          height: "100%",
           objectFit: "cover",
+          position: "absolute",
+          top: 0,
+          left: 0,
         }}
       />
-      <footer
+
+      <div
         style={{
-          height: 40,
-          backgroundColor: "#1D7BBA",
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          height: "60px",
+          background: "rgba(0, 0, 0, 0.65)",
           color: "#fff",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 20px",
-          fontSize: 16,
+          padding: "0 30px",
+          fontSize: "18px",
+          fontFamily: "'Segoe UI', sans-serif",
+          zIndex: 2,
         }}
       >
-        <div>TV Painel</div>
-        <div>{getCurrentTime()}</div>
-      </footer>
+        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>TV PAINEL</strong>
+        <span style={{ opacity: 0.9 }}>{currentTime}</span>
+      </div>
     </div>
   );
 }

@@ -1,93 +1,86 @@
+// pages/campanhas/[id].tsx
+
 import { useRouter } from "next/router";
 import {
   Box,
   Button,
   Container,
   Typography,
+  MenuItem,
+  FormControl,
+  Select,
+  InputLabel,
   Paper,
-  Switch,
-  FormControlLabel
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useEffect, useState } from "react";
 
-// Simulação de dados
-const mockCampanhas = [
-  {
-    id: "1",
-    cliente: "Cliente A",
-    nome: "Black Friday",
-    status: "Ativa",
-    video: "black-friday-final.mp4",
-  },
-  {
-    id: "2",
-    cliente: "Cliente B",
-    nome: "Verão 2024",
-    status: "Inativa",
-    video: "verao-2024.mp4",
-  },
-];
-
-export default function CampanhaDetalhe() {
+export default function DetalheCampanhaPage() {
   const router = useRouter();
   const { id } = router.query;
-  const [campanha, setCampanha] = useState(null);
+
+  const [campanha, setCampanha] = useState<any>(null);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
-    if (id) {
-      const encontrada = mockCampanhas.find((c) => c.id === id);
-      setCampanha(encontrada);
-    }
+    // Simula fetch da campanha pelo ID
+    const dados = {
+      id,
+      cliente: "Cliente A",
+      nome: "Campanha de Exemplo",
+      status: "Ativa",
+      video: "/videos/video1.mp4",
+    };
+    setCampanha(dados);
+    setStatus(dados.status);
   }, [id]);
 
-  const handleToggleStatus = () => {
-    if (campanha) {
-      const novoStatus = campanha.status === "Ativa" ? "Inativa" : "Ativa";
-      setCampanha({ ...campanha, status: novoStatus });
-    }
+  const handleSalvar = () => {
+    // Aqui você salvaria no backend ou localStorage
+    console.log("Campanha atualizada:", {
+      ...campanha,
+      status,
+    });
+
+    alert("Status salvo com sucesso!");
+    router.push("/dashboard");
   };
 
-  if (!campanha) return <Typography>Carregando campanha...</Typography>;
+  if (!campanha) return null;
 
   return (
-    <Container>
-      <Button
-        variant="outlined"
-        startIcon={<ArrowBackIcon />}
-        onClick={() => router.push("/dashboard")}
-        sx={{ mt: 2 }}
-      >
-        Voltar ao Dashboard
-      </Button>
-
-      <Paper sx={{ p: 4, mt: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          {campanha.nome}
+    <Container maxWidth="md" sx={{ mt: 5 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h5" fontWeight="bold" mb={2}>
+          Detalhes da Campanha
         </Typography>
-        <Typography>Cliente: {campanha.cliente}</Typography>
-        <Typography>Status atual: {campanha.status}</Typography>
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={campanha.status === "Ativa"}
-              onChange={handleToggleStatus}
-            />
-          }
-          label="Ativar campanha"
-          sx={{ mt: 2 }}
+        <Typography variant="body1"><strong>Cliente:</strong> {campanha.cliente}</Typography>
+        <Typography variant="body1" mb={2}><strong>Nome:</strong> {campanha.nome}</Typography>
+
+        <video
+          src={campanha.video}
+          controls
+          style={{ width: "100%", maxHeight: 400, borderRadius: 10, marginBottom: 24 }}
         />
 
-        <Button
-          variant="contained"
-          color="primary"
-          href={`/${campanha.video}`}
-          download
-          sx={{ mt: 3 }}
-        >
-          Baixar vídeo da campanha
-        </Button>
+        <FormControl fullWidth sx={{ mb: 3 }}>
+          <InputLabel id="status-label">Status</InputLabel>
+          <Select
+            labelId="status-label"
+            value={status}
+            label="Status"
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <MenuItem value="Ativa">Ativa</MenuItem>
+            <MenuItem value="Inativa">Inativa</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Box textAlign="right">
+          <Button variant="contained" color="primary" onClick={handleSalvar}>
+            Salvar Alterações
+          </Button>
+        </Box>
       </Paper>
     </Container>
   );
