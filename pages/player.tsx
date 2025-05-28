@@ -7,11 +7,9 @@ export default function PlayerPage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
 
-  // Carrega os vídeos das campanhas do localStorage, respeitando a ordem
   useEffect(() => {
     const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
 
-    // Filtra apenas campanhas ativas e extrai os vídeos
     const todosVideos = campanhas
       .filter((c: any) => c.status === "Ativa")
       .flatMap((c: any) => {
@@ -26,7 +24,6 @@ export default function PlayerPage() {
     setVideos(todosVideos);
   }, []);
 
-  // Atualiza o horário exibido na tarja inferior
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -44,7 +41,6 @@ export default function PlayerPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Reproduz próximo vídeo quando o atual termina
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
@@ -59,7 +55,6 @@ export default function PlayerPage() {
     };
   }, [videos]);
 
-  // Quando muda o vídeo, reinicia a reprodução
   useEffect(() => {
     const videoElement = videoRef.current;
     if (videoElement) {
@@ -80,46 +75,57 @@ export default function PlayerPage() {
         margin: 0,
         padding: 0,
         overflow: "hidden",
-        position: "relative",
+        backgroundColor: "#000",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
-      <video
-        ref={videoRef}
-        src={videos[currentVideoIndex].arquivo}
-        autoPlay
-        muted
-        controls={false}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-      />
-
       <div
         style={{
-          position: "absolute",
-          bottom: 0,
-          width: "100%",
-          height: "60px",
-          background: "rgba(0, 0, 0, 0.65)",
-          color: "#fff",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 30px",
-          fontSize: "18px",
-          fontFamily: "'Segoe UI', sans-serif",
-          zIndex: 2,
+          width: "calc(100% - 96px)",
+          height: "calc(100% - 96px)",
+          maxWidth: "1280px",
+          maxHeight: "720px",
+          position: "relative",
         }}
       >
-        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
-          TV PAINEL
-        </strong>
-        <span style={{ opacity: 0.9 }}>{currentTime}</span>
+        <video
+          ref={videoRef}
+          src={videos[currentVideoIndex].arquivo}
+          autoPlay
+          muted
+          controls={false}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            borderRadius: "4px",
+            backgroundColor: "#000",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            width: "100%",
+            height: "48px",
+            background: "rgba(0, 0, 0, 0.65)",
+            color: "#fff",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 24px",
+            fontSize: "16px",
+            fontFamily: "'Segoe UI', sans-serif",
+            zIndex: 2,
+          }}
+        >
+          <strong style={{ letterSpacing: 1, fontSize: 18, color: "#1D7BBA" }}>
+            TV PAINEL
+          </strong>
+          <span style={{ opacity: 0.9 }}>{currentTime}</span>
+        </div>
       </div>
     </div>
   );
