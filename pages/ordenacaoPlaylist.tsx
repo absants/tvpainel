@@ -8,7 +8,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton,
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useEffect, useState } from 'react';
@@ -17,8 +16,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 export default function OrdenacaoPlaylist() {
   const router = useRouter();
   const { id } = router.query;
-
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [campanhaNome, setCampanhaNome] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -27,6 +26,7 @@ export default function OrdenacaoPlaylist() {
     const campanha = lista.find((c) => c.id === id);
 
     if (campanha) {
+      setCampanhaNome(campanha.nome);
       if (campanha.videos && Array.isArray(campanha.videos)) {
         setVideos(campanha.videos);
       } else if (campanha.videoUrl) {
@@ -43,13 +43,11 @@ export default function OrdenacaoPlaylist() {
     }
   }, [id]);
 
-  const onDragEnd = (result) => {
+  const onDragEnd = (result: any) => {
     if (!result.destination) return;
-
     const reordered = Array.from(videos);
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
-
     setVideos(reordered);
   };
 
@@ -79,41 +77,47 @@ export default function OrdenacaoPlaylist() {
         Voltar
       </Button>
       <Typography variant="h5" gutterBottom>
-        Ordenar Vídeos da Campanha #{id}
+        Ordenar Vídeos da Campanha: {campanhaNome || id}
       </Typography>
-      <Paper elevation={3} sx={{ p: 2 }}>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="playlist">
-            {(provided) => (
-              <List {...provided.droppableProps} ref={provided.innerRef}>
-                {videos.map((video, index) => (
-                  <Draggable key={video.id} draggableId={video.id} index={index}>
-                    {(provided) => (
-                      <ListItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        sx={{ border: '1px solid #ccc', mb: 1, borderRadius: 1 }}
-                      >
-                        <ListItemText
-                          primary={`${index + 1}. ${video.nome}`}
-                          secondary={video.arquivo}
-                        />
-                      </ListItem>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </List>
-            )}
-          </Droppable>
-        </DragDropContext>
-        <Box textAlign="right" mt={2}>
-          <Button variant="contained" color="primary" onClick={salvarOrdem}>
-            Salvar Ordem
-          </Button>
-        </Box>
-      </Paper>
+      {videos.length === 0 ? (
+        <Typography color="text.secondary">
+          Nenhum vídeo disponível para ordenar.
+        </Typography>
+      ) : (
+        <Paper elevation={3} sx={{ p: 2 }}>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="playlist">
+              {(provided) => (
+                <List {...provided.droppableProps} ref={provided.innerRef}>
+                  {videos.map((video, index) => (
+                    <Draggable key={video.id} draggableId={video.id} index={index}>
+                      {(provided) => (
+                        <ListItem
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          sx={{ border: '1px solid #ccc', mb: 1, borderRadius: 1 }}
+                        >
+                          <ListItemText
+                            primary={`${index + 1}. ${video.nome}`}
+                            secondary={video.arquivo}
+                          />
+                        </ListItem>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </List>
+              )}
+            </Droppable>
+          </DragDropContext>
+          <Box textAlign="right" mt={2}>  
+            <Button variant="contained" color="primary" onClick={salvarOrdem}>
+              Salvar Ordem
+            </Button>
+          </Box>
+        </Paper>
+      )}
     </Container>
   );
 }

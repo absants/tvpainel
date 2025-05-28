@@ -74,8 +74,8 @@ export default function Dashboard() {
         <Button variant="contained" color="secondary" onClick={handleAbrirPlayer}>
           Ver Player
         </Button>
-        <Button variant="outlined" color="info" onClick={handleVerOrdenacao}>
-          Ver Ordenação
+        <Button size="small" onClick={() => router.push(`/ordenacaoPlaylist?id=${campanha.id}`)}>
+         Ordenar Playlist
         </Button>
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Status</InputLabel>
