@@ -6,7 +6,7 @@ export default function PlayerPage() {
   const [videos, setVideos] = useState<{ id: string; nome: string; arquivo: string }[]>([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
-  const ordemRef = useRef(""); // usada para detectar alterações em ordemGlobal
+  const ordemRef = useRef(""); // armazena a ordem atual
 
   const carregarVideos = () => {
     const ordem = localStorage.getItem("ordemGlobal");
@@ -33,17 +33,17 @@ export default function PlayerPage() {
     carregarVideos();
   }, []);
 
-  // Verifica mudança na ordemGlobal mesmo na mesma aba
+  // 🔁 Verifica constantemente se houve alteração no localStorage
   useEffect(() => {
     const intervalo = setInterval(() => {
       const novaOrdem = localStorage.getItem("ordemGlobal") || "";
       if (novaOrdem !== ordemRef.current) {
         ordemRef.current = novaOrdem;
-        setCurrentVideoIndex(0); // reinicia
+        setCurrentVideoIndex(0);
         setVideos(JSON.parse(novaOrdem));
-        console.log("Playlist atualizada a partir da nova ordenação.");
+        console.log("Playlist atualizada por alteração na ordenação.");
       }
-    }, 5000); // a cada 5 segundos
+    }, 2000); // verifica a cada 2 segundos
 
     return () => clearInterval(intervalo);
   }, []);

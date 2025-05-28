@@ -34,15 +34,11 @@ export default function Dashboard() {
   const [filtroStatus, setFiltroStatus] = useState<'Todas' | 'Ativa' | 'Inativa'>('Todas');
 
   useEffect(() => {
-    carregarCampanhas();
-  }, []);
-
-  const carregarCampanhas = () => {
     const stored = localStorage.getItem('campanhas');
     if (stored) {
       setCampanhas(JSON.parse(stored));
     }
-  };
+  }, []);
 
   const handleVerDetalhes = (id: string) => {
     router.push(`/campanhas/${id}`);
@@ -50,10 +46,6 @@ export default function Dashboard() {
 
   const handleNovaCampanha = () => {
     router.push('/nova-campanha');
-  };
-
-  const handleAbrirPlayer = () => {
-    router.push('/player');
   };
 
   const handleExcluir = (id: string) => {
@@ -80,7 +72,11 @@ export default function Dashboard() {
         <Button variant="contained" color="primary" onClick={handleNovaCampanha}>
           Nova Campanha
         </Button>
-        <Button variant="contained" color="secondary" onClick={handleAbrirPlayer}>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => window.open("/player", "_blank")}
+        >
           Ver Player
         </Button>
         <FormControl sx={{ minWidth: 120 }}>
