@@ -7,7 +7,8 @@ export default function PlayerPage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
 
-  useEffect(() => {
+  // Carrega a ordemGlobal ou o fallback das campanhas ativas
+  const carregarVideos = () => {
     const ordem = localStorage.getItem("ordemGlobal");
     if (ordem) {
       setVideos(JSON.parse(ordem));
@@ -25,6 +26,22 @@ export default function PlayerPage() {
         });
       setVideos(todosVideos);
     }
+  };
+
+  useEffect(() => {
+    carregarVideos();
+  }, []);
+
+  // Detecta alterações em ordemGlobal feitas por outras abas (ex: ordenacaoPlaylist)
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "ordemGlobal") {
+        carregarVideos();
+        setCurrentVideoIndex(0); // reinicia do começo
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -87,52 +104,40 @@ export default function PlayerPage() {
         overflow: "hidden",
       }}
     >
+      <video
+        ref={videoRef}
+        src={videos[currentVideoIndex].arquivo}
+        autoPlay
+        muted
+        controls={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          backgroundColor: "#000",
+        }}
+      />
       <div
         style={{
-          width: "calc(100% - 96px)",
-          height: "calc(100% - 96px)",
-          maxWidth: "1280px",
-          maxHeight: "720px",
-          position: "relative",
-          overflow: "hidden",
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          height: "48px",
+          background: "rgba(0, 0, 0, 0.65)",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 24px",
+          fontSize: "16px",
+          fontFamily: "'Segoe UI', sans-serif",
+          zIndex: 2,
         }}
       >
-        <video
-          ref={videoRef}
-          src={videos[currentVideoIndex].arquivo}
-          autoPlay
-          muted
-          controls={false}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover", // agora preenche toda a área
-            backgroundColor: "#000",
-            display: "block",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            width: "100%",
-            height: "48px",
-            background: "rgba(0, 0, 0, 0.65)",
-            color: "#fff",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "0 24px",
-            fontSize: "16px",
-            fontFamily: "'Segoe UI', sans-serif",
-            zIndex: 2,
-          }}
-        >
-          <strong style={{ letterSpacing: 1, fontSize: 18, color: "#1D7BBA" }}>
-            TV PAINEL
-          </strong>
-          <span style={{ opacity: 0.9 }}>{currentTime}</span>
-        </div>
+        <strong style={{ letterSpacing: 1, fontSize: 18, color: "#1D7BBA" }}>
+          TV PAINEL
+        </strong>
+        <span style={{ opacity: 0.9 }}>{currentTime}</span>
       </div>
     </div>
   );
