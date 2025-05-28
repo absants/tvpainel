@@ -106,7 +106,7 @@ export default function PlayerPage() {
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "contain",
+            objectFit: "cover", // agora preenche toda a área
             backgroundColor: "#000",
             display: "block",
           }}
