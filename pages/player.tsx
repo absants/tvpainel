@@ -59,12 +59,13 @@ export default function OrdenacaoPlaylist() {
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
     setVideos(reordered);
-    // Atualiza imediatamente o localStorage para refletir no player
-    localStorage.setItem("playlistOrdenada", JSON.stringify(reordered));
   };
 
   const salvarOrdem = () => {
     localStorage.setItem("playlistOrdenada", JSON.stringify(videos));
+    const bc = new BroadcastChannel("playlistAtualizada");
+    bc.postMessage("atualizar");
+    bc.close();
     alert("Ordem global da playlist salva com sucesso!");
   };
 
