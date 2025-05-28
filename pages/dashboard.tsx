@@ -52,6 +52,12 @@ export default function Dashboard() {
     router.push('/player');
   };
 
+  const handleExcluirCampanha = (id: string) => {
+    const atualizadas = campanhas.filter((c) => c.id !== id);
+    setCampanhas(atualizadas);
+    localStorage.setItem('campanhas', JSON.stringify(atualizadas));
+  };
+
   const campanhasFiltradas =
     filtroStatus === 'Todas'
       ? campanhas
@@ -111,6 +117,13 @@ export default function Dashboard() {
                       onClick={() => router.push(`/ordenacaoPlaylist?id=${campanha.id}`)}
                     >
                       Ordenar Playlist
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => handleExcluirCampanha(campanha.id)}
+                    >
+                      Excluir
                     </Button>
                   </Stack>
                 </TableCell>
