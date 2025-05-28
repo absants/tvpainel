@@ -47,8 +47,17 @@ export default function OrdenacaoPlaylist() {
   };
 
   const salvarOrdem = () => {
-    // Salvando como ordem global (pode ser usada pelo player)
-    localStorage.setItem("ordemGlobal", JSON.stringify(videos));
+    const novaOrdem = JSON.stringify(videos);
+    localStorage.setItem("ordemGlobal", novaOrdem);
+
+    // 🔁 Dispara evento de storage para forçar refresh no player
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "ordemGlobal",
+        newValue: novaOrdem,
+      })
+    );
+
     alert("Ordem salva com sucesso!");
     router.push("/dashboard");
   };
