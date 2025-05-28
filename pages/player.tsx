@@ -15,7 +15,6 @@ export default function PlayerPage() {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
-    // Carrega playlist global do localStorage, ou usa fallback
     const stored = localStorage.getItem("playlistOrdenada");
     if (stored) {
       try {
@@ -29,7 +28,6 @@ export default function PlayerPage() {
       }
     }
 
-    // fallback (local)
     setPlaylist([
       { id: "1", nome: "Vídeo 1", arquivo: "/videos/video1.mp4" },
       { id: "2", nome: "Vídeo 2", arquivo: "/videos/video2.mp4" },
@@ -40,8 +38,8 @@ export default function PlayerPage() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const date = now.toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'short' });
+      const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const date = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' });
       setCurrentTime(`${date} • ${time}`);
     };
 
@@ -107,10 +105,11 @@ export default function PlayerPage() {
           fontSize: "18px",
           fontFamily: "'Segoe UI', sans-serif",
           zIndex: 2,
+          flexWrap: "wrap"
         }}
       >
         <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
-          {currentVideo?.nome || "TV PAINEL"}
+          IMPACTO TV
         </strong>
         <span style={{ opacity: 0.9 }}>{currentTime}</span>
       </div>
