@@ -6,10 +6,11 @@ export default function PlayerPage() {
   const [videos, setVideos] = useState<{ id: string; nome: string; arquivo: string }[]>([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
+  const ordemRef = useRef(""); // usada para detectar alterações em ordemGlobal
 
-  // Carrega a ordemGlobal ou o fallback das campanhas ativas
   const carregarVideos = () => {
     const ordem = localStorage.getItem("ordemGlobal");
+    ordemRef.current = ordem || "";
     if (ordem) {
       setVideos(JSON.parse(ordem));
     } else {
@@ -32,16 +33,19 @@ export default function PlayerPage() {
     carregarVideos();
   }, []);
 
-  // Detecta alterações em ordemGlobal feitas por outras abas (ex: ordenacaoPlaylist)
+  // Verifica mudança na ordemGlobal mesmo na mesma aba
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "ordemGlobal") {
-        carregarVideos();
-        setCurrentVideoIndex(0); // reinicia do começo
+    const intervalo = setInterval(() => {
+      const novaOrdem = localStorage.getItem("ordemGlobal") || "";
+      if (novaOrdem !== ordemRef.current) {
+        ordemRef.current = novaOrdem;
+        setCurrentVideoIndex(0); // reinicia
+        setVideos(JSON.parse(novaOrdem));
+        console.log("Playlist atualizada a partir da nova ordenação.");
       }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    }, 5000); // a cada 5 segundos
+
+    return () => clearInterval(intervalo);
   }, []);
 
   useEffect(() => {
