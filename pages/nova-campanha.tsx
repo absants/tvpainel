@@ -1,4 +1,3 @@
-// nova-campanha.tsx
 import {
   Box,
   Button,
@@ -31,18 +30,16 @@ export default function NovaCampanhaPage() {
 
     if (cliente && campanha && videoFile) {
       const novaCampanha = {
-        id: Date.now().toString(),
+        id: String(Date.now()),
         cliente,
         nome: campanha,
         status,
         video: videoFile.name,
       };
 
-      const campanhasExistentes = JSON.parse(
-        localStorage.getItem("campanhas") || "[]"
-      );
-      campanhasExistentes.push(novaCampanha);
-      localStorage.setItem("campanhas", JSON.stringify(campanhasExistentes));
+      const campanhasSalvas = JSON.parse(localStorage.getItem("campanhas") || "[]");
+      campanhasSalvas.push(novaCampanha);
+      localStorage.setItem("campanhas", JSON.stringify(campanhasSalvas));
 
       router.push("/dashboard");
     } else {
