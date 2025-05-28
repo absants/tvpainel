@@ -14,18 +14,28 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useEffect, useState } from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-// Mock inicial
-const mockVideos = [
-  { id: '1', nome: 'Black Friday', arquivo: 'black-friday.mp4' },
-  { id: '2', nome: 'Verão 2024', arquivo: 'verao-2024.mp4' },
-  { id: '3', nome: 'Campanha Dia das Mães', arquivo: 'maes.mp4' },
-];
-
 export default function OrdenacaoPlaylist() {
   const router = useRouter();
   const { id } = router.query;
 
-  const [videos, setVideos] = useState(mockVideos);
+  const [videos, setVideos] = useState([]);
+
+  useEffect(() => {
+    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const campanha = lista.find((c) => c.id === id);
+    if (campanha && campanha.videos) {
+      setVideos(campanha.videos);
+    } else if (campanha) {
+      // fallback: vídeo único por campanha (como definido no cadastro)
+      setVideos([
+        {
+          id: campanha.id,
+          nome: campanha.nome,
+          arquivo: campanha.videoUrl,
+        },
+      ]);
+    }
+  }, [id]);
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -38,8 +48,18 @@ export default function OrdenacaoPlaylist() {
   };
 
   const salvarOrdem = () => {
-    console.log('Nova ordem de vídeos:', videos);
-    alert('Ordem salva com sucesso!');
+    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const novaLista = lista.map((c) => {
+      if (c.id === id) {
+        return {
+          ...c,
+          videos,
+        };
+      }
+      return c;
+    });
+    localStorage.setItem("campanhas", JSON.stringify(novaLista));
+    alert("Ordem salva com sucesso!");
     router.push(`/campanhas/${id}`);
   };
 
