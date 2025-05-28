@@ -70,15 +70,18 @@ export default function PlayerPage() {
   return (
     <div
       style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
         width: "100vw",
         height: "100vh",
         margin: 0,
         padding: 0,
-        overflow: "hidden",
         backgroundColor: "#000",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
@@ -88,6 +91,7 @@ export default function PlayerPage() {
           maxWidth: "1280px",
           maxHeight: "720px",
           position: "relative",
+          overflow: "hidden",
         }}
       >
         <video
@@ -100,8 +104,8 @@ export default function PlayerPage() {
             width: "100%",
             height: "100%",
             objectFit: "contain",
-            borderRadius: "4px",
             backgroundColor: "#000",
+            display: "block",
           }}
         />
         <div
