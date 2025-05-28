@@ -13,14 +13,18 @@ import {
   Typography,
   Stack
 } from '@mui/material';
-
-const mockCampanhas = [
-  { id: '1', cliente: 'Cliente A', nome: 'Black Friday', status: 'Ativa' },
-  { id: '2', cliente: 'Cliente B', nome: 'Verão 2024', status: 'Inativa' },
-];
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const router = useRouter();
+  const [campanhas, setCampanhas] = useState<any[]>([]);
+
+  useEffect(() => {
+    const dados = localStorage.getItem('campanhas');
+    if (dados) {
+      setCampanhas(JSON.parse(dados));
+    }
+  }, []);
 
   const handleVerDetalhes = (id: string) => {
     router.push(`/campanhas/${id}`);
@@ -67,10 +71,10 @@ export default function Dashboard() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {mockCampanhas.map((campanha) => (
+            {campanhas.map((campanha) => (
               <TableRow key={campanha.id}>
                 <TableCell>{campanha.cliente}</TableCell>
-                <TableCell>{campanha.nome}</TableCell>
+                <TableCell>{campanha.campanha}</TableCell>
                 <TableCell>{campanha.status}</TableCell>
                 <TableCell>
                   <Button size="small" onClick={() => handleVerDetalhes(campanha.id)}>

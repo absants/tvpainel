@@ -28,14 +28,23 @@ export default function NovaCampanhaPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simulação de validação + cadastro
     if (cliente && campanha && videoFile) {
-      console.log("Cliente:", cliente);
-      console.log("Campanha:", campanha);
-      console.log("Status:", status);
-      console.log("Arquivo:", videoFile.name);
+      const novaCampanha = {
+        cliente,
+        campanha,
+        status,
+        video: videoFile.name,
+        id: Date.now(), // ID único baseado no timestamp
+      };
 
-      // Redireciona para o dashboard
+      const campanhasExistentes = localStorage.getItem("campanhas");
+      const campanhas = campanhasExistentes
+        ? JSON.parse(campanhasExistentes)
+        : [];
+
+      campanhas.push(novaCampanha);
+      localStorage.setItem("campanhas", JSON.stringify(campanhas));
+
       router.push("/dashboard");
     } else {
       alert("Preencha todos os campos e selecione um vídeo.");
