@@ -1,83 +1,87 @@
-// pages/dashboard.tsx
-
-import Link from "next/link";
+import { useRouter } from 'next/router';
 import {
   Box,
   Button,
   Container,
-  Typography,
+  Paper,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
-  Paper,
-} from "@mui/material";
-import { useRouter } from "next/router";
-import { useState } from "react";
+  Typography,
+  Stack
+} from '@mui/material';
 
 const mockCampanhas = [
-  {
-    id: "1",
-    cliente: "Cliente A",
-    nome: "Campanha Black Friday",
-    status: "Ativa",
-  },
-  {
-    id: "2",
-    cliente: "Cliente B",
-    nome: "Campanha Verão",
-    status: "Inativa",
-  },
+  { id: '1', cliente: 'Cliente A', nome: 'Black Friday', status: 'Ativa' },
+  { id: '2', cliente: 'Cliente B', nome: 'Verão 2024', status: 'Inativa' },
 ];
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const router = useRouter();
-  const [campanhas, setCampanhas] = useState(mockCampanhas);
 
-  const handleRowClick = (id: string) => {
+  const handleVerDetalhes = (id: string) => {
     router.push(`/campanhas/${id}`);
   };
 
-  return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" fontWeight="bold">Dashboard</Typography>
-        <Box display="flex" gap={2}>
-          <Link href="/nova-campanha" passHref>
-            <Button variant="contained" color="primary">+ Nova Campanha</Button>
-          </Link>
-          <Link href="/player" passHref>
-            <Button variant="outlined" color="secondary">Ver Tela do Player</Button>
-          </Link>
-        </Box>
-      </Box>
+  const handleNovaCampanha = () => {
+    router.push('/nova-campanha');
+  };
 
-      <Paper>
+  const handleAbrirPlayer = () => {
+    router.push('/player');
+  };
+
+  const handleVerOrdenacao = () => {
+    router.push('/ordenacaoPlaylist');
+  };
+
+  return (
+    <Container sx={{ mt: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Painel de Campanhas
+      </Typography>
+
+      <Stack direction="row" spacing={2} marginBottom={2}>
+        <Button variant="contained" color="primary" onClick={handleNovaCampanha}>
+          Nova Campanha
+        </Button>
+        <Button variant="contained" color="secondary" onClick={handleAbrirPlayer}>
+          Ver Player
+        </Button>
+        <Button variant="outlined" color="info" onClick={handleVerOrdenacao}>
+          Ver Ordenação
+        </Button>
+      </Stack>
+
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong>Cliente</strong></TableCell>
-              <TableCell><strong>Campanha</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
+              <TableCell>Cliente</TableCell>
+              <TableCell>Campanha</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {campanhas.map((campanha) => (
-              <TableRow
-                key={campanha.id}
-                hover
-                sx={{ cursor: "pointer" }}
-                onClick={() => handleRowClick(campanha.id)}
-              >
+            {mockCampanhas.map((campanha) => (
+              <TableRow key={campanha.id}>
                 <TableCell>{campanha.cliente}</TableCell>
                 <TableCell>{campanha.nome}</TableCell>
                 <TableCell>{campanha.status}</TableCell>
+                <TableCell>
+                  <Button size="small" onClick={() => handleVerDetalhes(campanha.id)}>
+                    Ver Detalhes
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </Paper>
+      </TableContainer>
     </Container>
   );
 }
