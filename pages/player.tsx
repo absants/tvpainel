@@ -78,18 +78,13 @@ export default function PlayerPage() {
       height: "100vh",
       margin: 0,
       padding: 20,
-      position: "fixed",
-      top: 0,
-      left: 0,
-      overflow: "hidden",
-      backgroundColor: "#000",
       boxSizing: "border-box",
+      backgroundColor: "#000",
       display: "flex",
       flexDirection: "column",
       justifyContent: "center",
       alignItems: "center",
-      minWidth: "1280px",
-      minHeight: "720px"
+      position: "relative"
     }}>
       <video
         ref={videoRef}
@@ -99,10 +94,8 @@ export default function PlayerPage() {
         controls={false}
         style={{
           width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          flex: 1,
-          borderRadius: 8
+          height: "calc(100% - 60px)",
+          objectFit: "contain",
         }}
       />
 
@@ -115,12 +108,10 @@ export default function PlayerPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 30px",
+          padding: "0 20px",
           fontSize: "18px",
           fontFamily: "'Segoe UI', sans-serif",
-          zIndex: 2,
-          marginTop: 20,
-          borderRadius: 8
+          marginTop: "auto",
         }}
       >
         <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
