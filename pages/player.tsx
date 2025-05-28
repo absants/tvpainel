@@ -27,13 +27,13 @@ export default function PlayerPage() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      const date = now.toLocaleDateString([], {
+      const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const date = now.toLocaleDateString("pt-BR", {
         weekday: "long",
         day: "2-digit",
         month: "short",
       });
-      setCurrentTime(`${date} • ${time}`);
+      setCurrentTime(`${capitalize(date)} • ${time}`);
     };
 
     updateTime();
@@ -133,4 +133,9 @@ export default function PlayerPage() {
       </div>
     </div>
   );
+}
+
+// Função auxiliar para capitalizar o dia da semana
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
