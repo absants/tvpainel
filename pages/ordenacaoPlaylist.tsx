@@ -13,45 +13,35 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useEffect, useState } from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-interface VideoItem {
-  id: string;
-  nome: string;
-  arquivo: string;
-  campanha: string;
-  cliente: string;
-}
-
 export default function OrdenacaoPlaylist() {
   const router = useRouter();
-  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const { id } = router.query;
+  const [videos, setVideos] = useState<any[]>([]);
+  const [campanhaNome, setCampanhaNome] = useState("");
 
   useEffect(() => {
+    if (!id) return;
+
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const allVideos: VideoItem[] = lista.flatMap((c: any) => {
-      if (Array.isArray(c.videos)) {
-        return c.videos.map((v: any, idx: number) => ({
-          id: `${c.id}-${idx}`,
-          nome: v.nome,
-          arquivo: v.arquivo,
-          campanha: c.nome,
-          cliente: c.cliente,
-        }));
-      } else if (c.videoUrl) {
-        return [
+    const campanha = lista.find((c: any) => c.id === id);
+
+    if (campanha) {
+      setCampanhaNome(campanha.nome);
+      if (Array.isArray(campanha.videos)) {
+        setVideos(campanha.videos);
+      } else if (campanha.videoUrl) {
+        setVideos([
           {
-            id: c.id,
-            nome: c.nome,
-            arquivo: c.videoUrl,
-            campanha: c.nome,
-            cliente: c.cliente,
+            id: campanha.id,
+            nome: campanha.nome,
+            arquivo: campanha.videoUrl,
           },
-        ];
+        ]);
       } else {
-        return [];
+        setVideos([]);
       }
-    });
-    setVideos(allVideos);
-  }, []);
+    }
+  }, [id]);
 
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -62,8 +52,19 @@ export default function OrdenacaoPlaylist() {
   };
 
   const salvarOrdem = () => {
-    localStorage.setItem("playlistOrdenada", JSON.stringify(videos));
-    alert("Ordem global da playlist salva com sucesso!");
+    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const novaLista = lista.map((c: any) => {
+      if (c.id === id) {
+        return {
+          ...c,
+          videos,
+        };
+      }
+      return c;
+    });
+    localStorage.setItem("campanhas", JSON.stringify(novaLista));
+    alert("Ordem salva com sucesso!");
+    router.push(`/campanhas/${id}`);
   };
 
   return (
@@ -76,12 +77,11 @@ export default function OrdenacaoPlaylist() {
         Voltar
       </Button>
       <Typography variant="h5" gutterBottom>
-        Ordenar Playlist Global
+        Ordenar Vídeos da Campanha: {campanhaNome || id}
       </Typography>
-
       {videos.length === 0 ? (
         <Typography color="text.secondary">
-          Nenhum vídeo encontrado nas campanhas.
+          Nenhum vídeo disponível para ordenar.
         </Typography>
       ) : (
         <Paper elevation={3} sx={{ p: 2 }}>
@@ -100,7 +100,7 @@ export default function OrdenacaoPlaylist() {
                         >
                           <ListItemText
                             primary={`${index + 1}. ${video.nome}`}
-                            secondary={`Cliente: ${video.cliente} • Campanha: ${video.campanha}`}
+                            secondary={video.arquivo}
                           />
                         </ListItem>
                       )}

@@ -1,4 +1,3 @@
-// pages/dashboard.tsx
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -52,12 +51,6 @@ export default function Dashboard() {
     router.push('/player');
   };
 
-  const handleExcluirCampanha = (id: string) => {
-    const atualizadas = campanhas.filter((c) => c.id !== id);
-    setCampanhas(atualizadas);
-    localStorage.setItem('campanhas', JSON.stringify(atualizadas));
-  };
-
   const campanhasFiltradas =
     filtroStatus === 'Todas'
       ? campanhas
@@ -108,22 +101,19 @@ export default function Dashboard() {
                 <TableCell>{campanha.status}</TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
-                    <Button size="small" onClick={() => handleVerDetalhes(campanha.id)}>
+                    <Button
+                      size="small"
+                      onClick={() => handleVerDetalhes(campanha.id)}
+                    >
                       Ver Detalhes
                     </Button>
                     <Button
                       size="small"
-                      color="secondary"
-                      onClick={() => router.push(`/ordenacaoPlaylist?id=${campanha.id}`)}
+                      onClick={() =>
+                        router.push(`/ordenacaoPlaylist?id=${campanha.id}`)
+                      }
                     >
                       Ordenar Playlist
-                    </Button>
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => handleExcluirCampanha(campanha.id)}
-                    >
-                      Excluir
                     </Button>
                   </Stack>
                 </TableCell>
