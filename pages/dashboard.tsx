@@ -52,10 +52,6 @@ export default function Dashboard() {
     router.push('/player');
   };
 
-  const handleVerOrdenacao = () => {
-    router.push('/ordenacaoPlaylist');
-  };
-
   const campanhasFiltradas =
     filtroStatus === 'Todas'
       ? campanhas
@@ -73,9 +69,6 @@ export default function Dashboard() {
         </Button>
         <Button variant="contained" color="secondary" onClick={handleAbrirPlayer}>
           Ver Player
-        </Button>
-        <Button size="small" onClick={() => router.push(`/ordenacaoPlaylist?id=${campanha.id}`)}>
-         Ordenar Playlist
         </Button>
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Status</InputLabel>
@@ -108,9 +101,18 @@ export default function Dashboard() {
                 <TableCell>{campanha.nome}</TableCell>
                 <TableCell>{campanha.status}</TableCell>
                 <TableCell>
-                  <Button size="small" onClick={() => handleVerDetalhes(campanha.id)}>
-                    Ver Detalhes
-                  </Button>
+                  <Stack direction="row" spacing={1}>
+                    <Button size="small" onClick={() => handleVerDetalhes(campanha.id)}>
+                      Ver Detalhes
+                    </Button>
+                    <Button
+                      size="small"
+                      color="secondary"
+                      onClick={() => router.push(`/ordenacaoPlaylist?id=${campanha.id}`)}
+                    >
+                      Ordenar Playlist
+                    </Button>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}
