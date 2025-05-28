@@ -77,16 +77,19 @@ export default function PlayerPage() {
       width: "100vw",
       height: "100vh",
       margin: 0,
-      padding: 0,
+      padding: 20,
       position: "fixed",
       top: 0,
       left: 0,
       overflow: "hidden",
       backgroundColor: "#000",
+      boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
       justifyContent: "center",
-      alignItems: "center"
+      alignItems: "center",
+      minWidth: "1280px",
+      minHeight: "720px"
     }}>
       <video
         ref={videoRef}
@@ -99,6 +102,7 @@ export default function PlayerPage() {
           height: "100%",
           objectFit: "cover",
           flex: 1,
+          borderRadius: 8
         }}
       />
 
@@ -115,6 +119,8 @@ export default function PlayerPage() {
           fontSize: "18px",
           fontFamily: "'Segoe UI', sans-serif",
           zIndex: 2,
+          marginTop: 20,
+          borderRadius: 8
         }}
       >
         <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
