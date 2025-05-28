@@ -73,7 +73,21 @@ export default function PlayerPage() {
   const currentVideo = playlist[currentVideoIndex];
 
   return (
-    <div style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}>
+    <div style={{
+      width: "100vw",
+      height: "100vh",
+      margin: 0,
+      padding: 0,
+      position: "fixed",
+      top: 0,
+      left: 0,
+      overflow: "hidden",
+      backgroundColor: "#000",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center"
+    }}>
       <video
         ref={videoRef}
         src={currentVideo?.arquivo}
@@ -84,16 +98,12 @@ export default function PlayerPage() {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          position: "absolute",
-          top: 0,
-          left: 0,
+          flex: 1,
         }}
       />
 
       <div
         style={{
-          position: "absolute",
-          bottom: 0,
           width: "100%",
           height: "60px",
           background: "rgba(0, 0, 0, 0.65)",
@@ -105,7 +115,6 @@ export default function PlayerPage() {
           fontSize: "18px",
           fontFamily: "'Segoe UI', sans-serif",
           zIndex: 2,
-          flexWrap: "wrap"
         }}
       >
         <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
