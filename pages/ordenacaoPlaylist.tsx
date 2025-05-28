@@ -23,11 +23,11 @@ export default function OrdenacaoPlaylist() {
     if (!id) return;
 
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const campanha = lista.find((c) => c.id === id);
+    const campanha = lista.find((c: any) => c.id === id);
 
     if (campanha) {
       setCampanhaNome(campanha.nome);
-      if (campanha.videos && Array.isArray(campanha.videos)) {
+      if (Array.isArray(campanha.videos)) {
         setVideos(campanha.videos);
       } else if (campanha.videoUrl) {
         setVideos([
@@ -53,7 +53,7 @@ export default function OrdenacaoPlaylist() {
 
   const salvarOrdem = () => {
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const novaLista = lista.map((c) => {
+    const novaLista = lista.map((c: any) => {
       if (c.id === id) {
         return {
           ...c,
@@ -64,7 +64,7 @@ export default function OrdenacaoPlaylist() {
     });
     localStorage.setItem("campanhas", JSON.stringify(novaLista));
     alert("Ordem salva com sucesso!");
-    router.push(`/campanhas/ordenacaoPlaylist?id=${campanha.id}`)
+    router.push(`/campanhas/${id}`);
   };
 
   return (
@@ -111,7 +111,7 @@ export default function OrdenacaoPlaylist() {
               )}
             </Droppable>
           </DragDropContext>
-          <Box textAlign="right" mt={2}>  
+          <Box textAlign="right" mt={2}>
             <Button variant="contained" color="primary" onClick={salvarOrdem}>
               Salvar Ordem
             </Button>
