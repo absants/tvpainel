@@ -8,20 +8,23 @@ export default function PlayerPage() {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
-    const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
-
-    const todosVideos = campanhas
-      .filter((c: any) => c.status === "Ativa")
-      .flatMap((c: any) => {
-        if (Array.isArray(c.videos) && c.videos.length > 0) {
-          return c.videos;
-        } else if (c.videoUrl) {
-          return [{ id: c.id, nome: c.nome, arquivo: c.videoUrl }];
-        }
-        return [];
-      });
-
-    setVideos(todosVideos);
+    const ordem = localStorage.getItem("ordemGlobal");
+    if (ordem) {
+      setVideos(JSON.parse(ordem));
+    } else {
+      const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
+      const todosVideos = campanhas
+        .filter((c: any) => c.status === "Ativa")
+        .flatMap((c: any) => {
+          if (Array.isArray(c.videos) && c.videos.length > 0) {
+            return c.videos;
+          } else if (c.videoUrl) {
+            return [{ id: c.id, nome: c.nome, arquivo: c.videoUrl }];
+          }
+          return [];
+        });
+      setVideos(todosVideos);
+    }
   }, []);
 
   useEffect(() => {
@@ -135,7 +138,6 @@ export default function PlayerPage() {
   );
 }
 
-// Função auxiliar para capitalizar o dia da semana
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
