@@ -64,7 +64,7 @@ export default function OrdenacaoPlaylist() {
     });
     localStorage.setItem("campanhas", JSON.stringify(novaLista));
     alert("Ordem salva com sucesso!");
-    router.push(`/campanhas/${id}`);
+    router.push(`/campanhas/ordenacaoPlaylist?id=${campanha.id}`)
   };
 
   return (
