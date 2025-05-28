@@ -7,7 +7,6 @@ import {
   Paper,
   List,
   ListItem,
-  ListItemText,
 } from "@mui/material";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useEffect, useState } from "react";
@@ -23,7 +22,7 @@ export default function OrdenacaoPlaylist() {
   useEffect(() => {
     const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
 
-    const todosVideos = campanhas
+    const todosArquivos = campanhas
       .filter((c: any) => c.status === "Ativa")
       .flatMap((c: any) => {
         if (Array.isArray(c.videos) && c.videos.length > 0) {
@@ -34,7 +33,7 @@ export default function OrdenacaoPlaylist() {
         return [];
       });
 
-    setVideos(todosVideos);
+    setVideos(todosArquivos);
   }, []);
 
   const onDragEnd = (result: any) => {
@@ -50,7 +49,7 @@ export default function OrdenacaoPlaylist() {
     const novaOrdem = JSON.stringify(videos);
     localStorage.setItem("ordemGlobal", novaOrdem);
 
-    // 🔁 Dispara evento de storage para forçar refresh no player
+    // 🔁 Dispara evento de storage para forçar refresh no player (outra aba)
     window.dispatchEvent(
       new StorageEvent("storage", {
         key: "ordemGlobal",
@@ -58,8 +57,28 @@ export default function OrdenacaoPlaylist() {
       })
     );
 
+    // 🧠 Gatilho auxiliar para forçar o player a recarregar mesmo na mesma aba
+    localStorage.setItem("forcarRefreshPlayer", Date.now().toString());
+
     alert("Ordem salva com sucesso!");
     router.push("/dashboard");
+  };
+
+  const renderPreview = (arquivo: string) => {
+    const tipo = arquivo.split(".").pop()?.toLowerCase();
+    if (!tipo) return null;
+
+    if (["mp4", "webm", "mov"].includes(tipo)) {
+      return <video src={arquivo} width="100%" height="auto" controls />;
+    }
+    if (["jpg", "jpeg", "png", "gif"].includes(tipo)) {
+      return <img src={arquivo} alt="Imagem" style={{ width: "100%", borderRadius: 4 }} />;
+    }
+    if (["mp3", "wav"].includes(tipo)) {
+      return <audio src={arquivo} controls style={{ width: "100%" }} />;
+    }
+
+    return <Typography variant="body2">Arquivo: {arquivo}</Typography>;
   };
 
   return (
@@ -76,19 +95,30 @@ export default function OrdenacaoPlaylist() {
           <Droppable droppableId="playlist">
             {(provided) => (
               <List {...provided.droppableProps} ref={provided.innerRef}>
-                {videos.map((video, index) => (
-                  <Draggable key={video.id + index} draggableId={video.id + index} index={index}>
+                {videos.map((item, index) => (
+                  <Draggable
+                    key={item.id + index}
+                    draggableId={item.id + index}
+                    index={index}
+                  >
                     {(provided) => (
                       <ListItem
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        sx={{ border: "1px solid #ccc", mb: 1, borderRadius: 1 }}
+                        sx={{
+                          border: "1px solid #ccc",
+                          mb: 2,
+                          borderRadius: 2,
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          padding: 2,
+                        }}
                       >
-                        <ListItemText
-                          primary={`${index + 1}. ${video.nome}`}
-                          secondary={video.arquivo}
-                        />
+                        <Typography fontWeight={600} mb={1}>
+                          {index + 1}. {item.nome}
+                        </Typography>
+                        {renderPreview(item.arquivo)}
                       </ListItem>
                     )}
                   </Draggable>
