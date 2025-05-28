@@ -1,11 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 
+interface VideoItem {
+  id: string;
+  nome: string;
+  arquivo: string;
+  campanha?: string;
+  cliente?: string;
+}
+
 export default function PlayerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [playlist, setPlaylist] = useState<VideoItem[]>([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
 
-  const videos = ["/videos/video1.mp4", "/videos/video2.mp4", "/videos/video3.mp4"];
+  useEffect(() => {
+    // Carrega playlist global do localStorage, ou usa fallback
+    const stored = localStorage.getItem("playlistOrdenada");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPlaylist(parsed);
+          return;
+        }
+      } catch (e) {
+        console.error("Erro ao carregar playlist:", e);
+      }
+    }
+
+    // fallback (local)
+    setPlaylist([
+      { id: "1", nome: "Vídeo 1", arquivo: "/videos/video1.mp4" },
+      { id: "2", nome: "Vídeo 2", arquivo: "/videos/video2.mp4" },
+      { id: "3", nome: "Vídeo 3", arquivo: "/videos/video3.mp4" },
+    ]);
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -25,28 +55,30 @@ export default function PlayerPage() {
     if (!videoElement) return;
 
     const handleEnded = () => {
-      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % playlist.length);
     };
 
     videoElement.addEventListener("ended", handleEnded);
     return () => {
       videoElement.removeEventListener("ended", handleEnded);
     };
-  }, [videos]);
+  }, [playlist]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
-    if (videoElement) {
+    if (videoElement && playlist.length > 0) {
       videoElement.load();
       videoElement.play().catch(() => {});
     }
-  }, [currentVideoIndex]);
+  }, [currentVideoIndex, playlist]);
+
+  const currentVideo = playlist[currentVideoIndex];
 
   return (
     <div style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}>
       <video
         ref={videoRef}
-        src={videos[currentVideoIndex]}
+        src={currentVideo?.arquivo}
         autoPlay
         muted
         controls={false}
@@ -77,7 +109,9 @@ export default function PlayerPage() {
           zIndex: 2,
         }}
       >
-        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>TV PAINEL</strong>
+        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
+          {currentVideo?.nome || "TV PAINEL"}
+        </strong>
         <span style={{ opacity: 0.9 }}>{currentTime}</span>
       </div>
     </div>
