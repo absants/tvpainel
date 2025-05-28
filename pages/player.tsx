@@ -1,124 +1,125 @@
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from 'next/router';
+import {
+  Box,
+  Button,
+  Container,
+  Typography,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useEffect, useState } from 'react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface VideoItem {
   id: string;
   nome: string;
   arquivo: string;
-  campanha?: string;
-  cliente?: string;
+  campanha: string;
+  cliente: string;
 }
 
-export default function PlayerPage() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [playlist, setPlaylist] = useState<VideoItem[]>([]);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [currentTime, setCurrentTime] = useState("");
+export default function OrdenacaoPlaylist() {
+  const router = useRouter();
+  const [videos, setVideos] = useState<VideoItem[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("playlistOrdenada");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setPlaylist(parsed);
-          return;
-        }
-      } catch (e) {
-        console.error("Erro ao carregar playlist:", e);
+    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const allVideos: VideoItem[] = lista.flatMap((c: any) => {
+      if (Array.isArray(c.videos)) {
+        return c.videos.map((v: any, idx: number) => ({
+          id: `${c.id}-${idx}`,
+          nome: v.nome,
+          arquivo: v.arquivo,
+          campanha: c.nome,
+          cliente: c.cliente,
+        }));
+      } else if (c.videoUrl) {
+        return [
+          {
+            id: c.id,
+            nome: c.nome,
+            arquivo: c.videoUrl,
+            campanha: c.nome,
+            cliente: c.cliente,
+          },
+        ];
+      } else {
+        return [];
       }
-    }
-
-    setPlaylist([
-      { id: "1", nome: "Vídeo 1", arquivo: "/videos/video1.mp4" },
-      { id: "2", nome: "Vídeo 2", arquivo: "/videos/video2.mp4" },
-      { id: "3", nome: "Vídeo 3", arquivo: "/videos/video3.mp4" },
-    ]);
+    });
+    setVideos(allVideos);
   }, []);
 
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const date = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' });
-      setCurrentTime(`${date} • ${time}`);
-    };
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    const reordered = Array.from(videos);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    setVideos(reordered);
+    // Atualiza imediatamente o localStorage para refletir no player
+    localStorage.setItem("playlistOrdenada", JSON.stringify(reordered));
+  };
 
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
-
-    const handleEnded = () => {
-      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % playlist.length);
-    };
-
-    videoElement.addEventListener("ended", handleEnded);
-    return () => {
-      videoElement.removeEventListener("ended", handleEnded);
-    };
-  }, [playlist]);
-
-  useEffect(() => {
-    const videoElement = videoRef.current;
-    if (videoElement && playlist.length > 0) {
-      videoElement.load();
-      videoElement.play().catch(() => {});
-    }
-  }, [currentVideoIndex, playlist]);
-
-  const currentVideo = playlist[currentVideoIndex];
+  const salvarOrdem = () => {
+    localStorage.setItem("playlistOrdenada", JSON.stringify(videos));
+    alert("Ordem global da playlist salva com sucesso!");
+  };
 
   return (
-    <div style={{
-      width: "100vw",
-      height: "100vh",
-      margin: 0,
-      padding: 20,
-      boxSizing: "border-box",
-      backgroundColor: "#000",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      position: "relative"
-    }}>
-      <video
-        ref={videoRef}
-        src={currentVideo?.arquivo}
-        autoPlay
-        muted
-        controls={false}
-        style={{
-          width: "100%",
-          height: "calc(100% - 60px)",
-          objectFit: "contain",
-        }}
-      />
-
-      <div
-        style={{
-          width: "100%",
-          height: "60px",
-          background: "rgba(0, 0, 0, 0.65)",
-          color: "#fff",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 20px",
-          fontSize: "18px",
-          fontFamily: "'Segoe UI', sans-serif",
-          marginTop: "auto",
-        }}
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={() => router.back()}
+        sx={{ mb: 2 }}
       >
-        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>
-          IMPACTO TV
-        </strong>
-        <span style={{ opacity: 0.9 }}>{currentTime}</span>
-      </div>
-    </div>
+        Voltar
+      </Button>
+      <Typography variant="h5" gutterBottom>
+        Ordenar Playlist Global
+      </Typography>
+
+      {videos.length === 0 ? (
+        <Typography color="text.secondary">
+          Nenhum vídeo encontrado nas campanhas.
+        </Typography>
+      ) : (
+        <Paper elevation={3} sx={{ p: 2 }}>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="playlist">
+              {(provided) => (
+                <List {...provided.droppableProps} ref={provided.innerRef}>
+                  {videos.map((video, index) => (
+                    <Draggable key={video.id} draggableId={video.id} index={index}>
+                      {(provided) => (
+                        <ListItem
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          sx={{ border: '1px solid #ccc', mb: 1, borderRadius: 1 }}
+                        >
+                          <ListItemText
+                            primary={`${index + 1}. ${video.nome}`}
+                            secondary={`Cliente: ${video.cliente} • Campanha: ${video.campanha}`}
+                          />
+                        </ListItem>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </List>
+              )}
+            </Droppable>
+          </DragDropContext>
+          <Box textAlign="right" mt={2}>
+            <Button variant="contained" color="primary" onClick={salvarOrdem}>
+              Salvar Ordem
+            </Button>
+          </Box>
+        </Paper>
+      )}
+    </Container>
   );
 }
