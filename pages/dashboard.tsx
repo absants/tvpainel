@@ -1,3 +1,4 @@
+// pages/dashboard.tsx
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -33,11 +34,15 @@ export default function Dashboard() {
   const [filtroStatus, setFiltroStatus] = useState<'Todas' | 'Ativa' | 'Inativa'>('Todas');
 
   useEffect(() => {
+    carregarCampanhas();
+  }, []);
+
+  const carregarCampanhas = () => {
     const stored = localStorage.getItem('campanhas');
     if (stored) {
       setCampanhas(JSON.parse(stored));
     }
-  }, []);
+  };
 
   const handleVerDetalhes = (id: string) => {
     router.push(`/campanhas/${id}`);
@@ -49,6 +54,15 @@ export default function Dashboard() {
 
   const handleAbrirPlayer = () => {
     router.push('/player');
+  };
+
+  const handleExcluir = (id: string) => {
+    const confirmacao = confirm("Tem certeza que deseja excluir esta campanha?");
+    if (!confirmacao) return;
+
+    const atualizadas = campanhas.filter(c => c.id !== id);
+    localStorage.setItem('campanhas', JSON.stringify(atualizadas));
+    setCampanhas(atualizadas);
   };
 
   const campanhasFiltradas =
@@ -114,6 +128,13 @@ export default function Dashboard() {
                       }
                     >
                       Ordenar Playlist
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => handleExcluir(campanha.id)}
+                    >
+                      Excluir
                     </Button>
                   </Stack>
                 </TableCell>
