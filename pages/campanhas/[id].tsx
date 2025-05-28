@@ -1,20 +1,15 @@
-// pages/campanhas/[id].tsx
-
 import { useRouter } from "next/router";
 import {
   Box,
   Button,
   Container,
-  Typography,
   MenuItem,
-  FormControl,
   Select,
-  InputLabel,
-  Paper,
+  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
-export default function DetalheCampanhaPage() {
+export default function DetalhesCampanha() {
   const router = useRouter();
   const { id } = router.query;
 
@@ -22,66 +17,70 @@ export default function DetalheCampanhaPage() {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    // Simula fetch da campanha pelo ID
-    const dados = {
-      id,
-      cliente: "Cliente A",
-      nome: "Campanha de Exemplo",
-      status: "Ativa",
-      video: "/videos/video1.mp4",
-    };
-    setCampanha(dados);
-    setStatus(dados.status);
+    if (id) {
+      const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+      const encontrada = lista.find((c: any) => c.id === id);
+      if (encontrada) {
+        setCampanha(encontrada);
+        setStatus(encontrada.status);
+      }
+    }
   }, [id]);
 
   const handleSalvar = () => {
-    // Aqui você salvaria no backend ou localStorage
-    console.log("Campanha atualizada:", {
-      ...campanha,
-      status,
-    });
-
-    alert("Status salvo com sucesso!");
+    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const atualizada = lista.map((c: any) =>
+      c.id === id ? { ...c, status } : c
+    );
+    localStorage.setItem("campanhas", JSON.stringify(atualizada));
+    alert("Campanha atualizada!");
     router.push("/dashboard");
   };
 
-  if (!campanha) return null;
+  if (!campanha) return <p>Carregando...</p>;
 
   return (
-    <Container maxWidth="md" sx={{ mt: 5 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h5" fontWeight="bold" mb={2}>
-          Detalhes da Campanha
-        </Typography>
+    <Container maxWidth="md" sx={{ mt: 6 }}>
+      <Typography variant="h5" gutterBottom>
+        Detalhes da Campanha
+      </Typography>
 
-        <Typography variant="body1"><strong>Cliente:</strong> {campanha.cliente}</Typography>
-        <Typography variant="body1" mb={2}><strong>Nome:</strong> {campanha.nome}</Typography>
+      <Typography fontWeight={600}>
+        Cliente: <span style={{ fontWeight: 400 }}>{campanha.cliente}</span>
+      </Typography>
+      <Typography fontWeight={600} mb={2}>
+        Nome: <span style={{ fontWeight: 400 }}>{campanha.nome}</span>
+      </Typography>
 
+      {campanha.videoUrl && (
         <video
-          src={campanha.video}
+          width="100%"
+          height="auto"
           controls
-          style={{ width: "100%", maxHeight: 400, borderRadius: 10, marginBottom: 24 }}
+          src={campanha.videoUrl}
+          style={{ marginBottom: "1rem" }}
         />
+      )}
 
-        <FormControl fullWidth sx={{ mb: 3 }}>
-          <InputLabel id="status-label">Status</InputLabel>
-          <Select
-            labelId="status-label"
-            value={status}
-            label="Status"
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <MenuItem value="Ativa">Ativa</MenuItem>
-            <MenuItem value="Inativa">Inativa</MenuItem>
-          </Select>
-        </FormControl>
+      <Box sx={{ mb: 3 }}>
+        <Typography>Status</Typography>
+        <Select
+          fullWidth
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <MenuItem value="Ativa">Ativa</MenuItem>
+          <MenuItem value="Inativa">Inativa</MenuItem>
+        </Select>
+      </Box>
 
-        <Box textAlign="right">
-          <Button variant="contained" color="primary" onClick={handleSalvar}>
-            Salvar Alterações
-          </Button>
-        </Box>
-      </Paper>
+      <Button
+        onClick={handleSalvar}
+        variant="contained"
+        sx={{ backgroundColor: "#1D7BBA" }}
+      >
+        Salvar Alterações
+      </Button>
     </Container>
   );
 }
