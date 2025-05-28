@@ -1,3 +1,4 @@
+// pages/dashboard.tsx
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -11,18 +12,31 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Stack
+  Stack,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 
+interface Campanha {
+  id: string;
+  cliente: string;
+  nome: string;
+  status: 'Ativa' | 'Inativa';
+  videoUrl?: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
-  const [campanhas, setCampanhas] = useState<any[]>([]);
+  const [campanhas, setCampanhas] = useState<Campanha[]>([]);
+  const [filtroStatus, setFiltroStatus] = useState<'Todas' | 'Ativa' | 'Inativa'>('Todas');
 
   useEffect(() => {
-    const dados = localStorage.getItem('campanhas');
-    if (dados) {
-      setCampanhas(JSON.parse(dados));
+    const stored = localStorage.getItem('campanhas');
+    if (stored) {
+      setCampanhas(JSON.parse(stored));
     }
   }, []);
 
@@ -42,6 +56,11 @@ export default function Dashboard() {
     router.push('/ordenacaoPlaylist');
   };
 
+  const campanhasFiltradas =
+    filtroStatus === 'Todas'
+      ? campanhas
+      : campanhas.filter((c) => c.status === filtroStatus);
+
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -58,6 +77,18 @@ export default function Dashboard() {
         <Button variant="outlined" color="info" onClick={handleVerOrdenacao}>
           Ver Ordenação
         </Button>
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={filtroStatus}
+            label="Status"
+            onChange={(e) => setFiltroStatus(e.target.value as any)}
+          >
+            <MenuItem value="Todas">Todas</MenuItem>
+            <MenuItem value="Ativa">Ativa</MenuItem>
+            <MenuItem value="Inativa">Inativa</MenuItem>
+          </Select>
+        </FormControl>
       </Stack>
 
       <TableContainer component={Paper}>
@@ -71,10 +102,10 @@ export default function Dashboard() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {campanhas.map((campanha) => (
+            {campanhasFiltradas.map((campanha) => (
               <TableRow key={campanha.id}>
                 <TableCell>{campanha.cliente}</TableCell>
-                <TableCell>{campanha.campanha}</TableCell>
+                <TableCell>{campanha.nome}</TableCell>
                 <TableCell>{campanha.status}</TableCell>
                 <TableCell>
                   <Button size="small" onClick={() => handleVerDetalhes(campanha.id)}>

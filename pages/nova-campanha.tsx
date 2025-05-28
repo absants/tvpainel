@@ -28,23 +28,34 @@ export default function NovaCampanhaPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (cliente && campanha && videoFile) {
+    if (!cliente || !campanha || !videoFile) {
+      alert("Preencha todos os campos e selecione um vídeo.");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const videoUrl = reader.result as string;
+
       const novaCampanha = {
-        id: String(Date.now()),
+        id: Date.now().toString(),
         cliente,
         nome: campanha,
         status,
-        video: videoFile.name,
+        videoUrl,
       };
 
-      const campanhasSalvas = JSON.parse(localStorage.getItem("campanhas") || "[]");
+      const campanhasSalvas =
+        JSON.parse(localStorage.getItem("campanhas") || "[]") || [];
+
       campanhasSalvas.push(novaCampanha);
       localStorage.setItem("campanhas", JSON.stringify(campanhasSalvas));
 
       router.push("/dashboard");
-    } else {
-      alert("Preencha todos os campos e selecione um vídeo.");
-    }
+    };
+
+    reader.readAsDataURL(videoFile);
   };
 
   return (
