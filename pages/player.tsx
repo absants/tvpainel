@@ -139,7 +139,7 @@ export default function PlayerPage() {
         }}
       >
         <strong style={{ letterSpacing: 1, fontSize: 18, color: "#1D7BBA" }}>
-          TV PAINEL
+          IMPACTO TV
         </strong>
         <span style={{ opacity: 0.9 }}>{currentTime}</span>
       </div>
