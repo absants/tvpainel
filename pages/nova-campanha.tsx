@@ -21,10 +21,25 @@ export default function NovaCampanhaPage() {
   const [previewNome, setPreviewNome] = useState("");
   const router = useRouter();
 
+  const tiposPermitidos = ["image/png", "image/jpeg", "video/mp4", "video/h264"];
+  const tamanhoMaximoMB = 10;
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setVideoFile(e.target.files[0]);
-      setPreviewNome(e.target.files[0].name);
+      const file = e.target.files[0];
+
+      if (!tiposPermitidos.includes(file.type)) {
+        alert("Tipo de arquivo não permitido. Aceitamos PNG, JPG, MP4 e H264.");
+        return;
+      }
+
+      if (file.size > tamanhoMaximoMB * 1024 * 1024) {
+        alert("Arquivo excede o limite de 10MB.");
+        return;
+      }
+
+      setVideoFile(file);
+      setPreviewNome(file.name);
     }
   };
 
@@ -41,7 +56,7 @@ export default function NovaCampanhaPage() {
           cliente,
           nome: campanha,
           status,
-          videoUrl: reader.result, // <- Base64 salvo corretamente
+          videoUrl: reader.result,
         };
 
         lista.push(nova);
@@ -50,7 +65,7 @@ export default function NovaCampanhaPage() {
         router.push("/dashboard");
       };
 
-      reader.readAsDataURL(videoFile); // ← inicia leitura
+      reader.readAsDataURL(videoFile);
     } else {
       alert("Preencha todos os campos e selecione um arquivo de mídia.");
     }
@@ -94,10 +109,10 @@ export default function NovaCampanhaPage() {
         </FormControl>
 
         <Button variant="outlined" component="label">
-          {previewNome || "Selecionar Vídeo / Imagem / Áudio"}
+          {previewNome || "Selecionar PNG, JPG, MP4 ou H264 (até 10MB)"}
           <input
             type="file"
-            accept="video/*,image/*,audio/*"
+            accept=".png,.jpg,.jpeg,.mp4,.h264"
             hidden
             onChange={handleFileChange}
           />
