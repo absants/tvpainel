@@ -49,7 +49,6 @@ export default function OrdenacaoPlaylist() {
     const novaOrdem = JSON.stringify(videos);
     localStorage.setItem("ordemGlobal", novaOrdem);
 
-    // 🔁 Dispara evento de storage para forçar refresh no player (outra aba)
     window.dispatchEvent(
       new StorageEvent("storage", {
         key: "ordemGlobal",
@@ -57,7 +56,7 @@ export default function OrdenacaoPlaylist() {
       })
     );
 
-    // 🧠 Gatilho auxiliar para forçar o player a recarregar mesmo na mesma aba
+    // Força refresh no player mesmo na mesma aba
     localStorage.setItem("forcarRefreshPlayer", Date.now().toString());
 
     alert("Ordem salva com sucesso!");
@@ -65,20 +64,23 @@ export default function OrdenacaoPlaylist() {
   };
 
   const renderPreview = (arquivo: string) => {
-    const tipo = arquivo.split(".").pop()?.toLowerCase();
-    if (!tipo) return null;
+    if (!arquivo || typeof arquivo !== "string") return null;
 
-    if (["mp4", "webm", "mov"].includes(tipo)) {
-      return <video src={arquivo} width="100%" height="auto" controls />;
+    const tipo = arquivo.split(";")[0].replace("data:", "").toLowerCase();
+
+    if (tipo.includes("video")) {
+      return <video src={arquivo} width="100%" controls style={{ borderRadius: 6 }} />;
     }
-    if (["jpg", "jpeg", "png", "gif"].includes(tipo)) {
-      return <img src={arquivo} alt="Imagem" style={{ width: "100%", borderRadius: 4 }} />;
+
+    if (tipo.includes("image")) {
+      return <img src={arquivo} alt="Imagem" style={{ width: "100%", borderRadius: 6 }} />;
     }
-    if (["mp3", "wav"].includes(tipo)) {
+
+    if (tipo.includes("audio")) {
       return <audio src={arquivo} controls style={{ width: "100%" }} />;
     }
 
-    return <Typography variant="body2">Arquivo: {arquivo}</Typography>;
+    return <Typography variant="body2">Arquivo não suportado ou inválido.</Typography>;
   };
 
   return (
@@ -95,10 +97,10 @@ export default function OrdenacaoPlaylist() {
           <Droppable droppableId="playlist">
             {(provided) => (
               <List {...provided.droppableProps} ref={provided.innerRef}>
-                {videos.map((item, index) => (
+                {videos.map((video, index) => (
                   <Draggable
-                    key={item.id + index}
-                    draggableId={item.id + index}
+                    key={video.id + index}
+                    draggableId={video.id + index}
                     index={index}
                   >
                     {(provided) => (
@@ -113,12 +115,13 @@ export default function OrdenacaoPlaylist() {
                           flexDirection: "column",
                           alignItems: "flex-start",
                           padding: 2,
+                          gap: 1,
                         }}
                       >
-                        <Typography fontWeight={600} mb={1}>
-                          {index + 1}. {item.nome}
+                        <Typography fontWeight={600}>
+                          {index + 1}. {video.nome}
                         </Typography>
-                        {renderPreview(item.arquivo)}
+                        {renderPreview(video.arquivo)}
                       </ListItem>
                     )}
                   </Draggable>
@@ -128,6 +131,7 @@ export default function OrdenacaoPlaylist() {
             )}
           </Droppable>
         </DragDropContext>
+
         <Box textAlign="right" mt={2}>
           <Button variant="contained" color="primary" onClick={salvarOrdem}>
             Salvar Ordem
