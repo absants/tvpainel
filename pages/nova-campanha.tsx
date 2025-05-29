@@ -41,7 +41,7 @@ export default function NovaCampanhaPage() {
           cliente,
           nome: campanha,
           status,
-          videoUrl: reader.result, // arquivo em base64
+          videoUrl: reader.result, // <- Base64 salvo corretamente
         };
 
         lista.push(nova);
@@ -50,7 +50,7 @@ export default function NovaCampanhaPage() {
         router.push("/dashboard");
       };
 
-      reader.readAsDataURL(videoFile); // converte para base64
+      reader.readAsDataURL(videoFile); // ← inicia leitura
     } else {
       alert("Preencha todos os campos e selecione um arquivo de mídia.");
     }
