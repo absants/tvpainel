@@ -1,3 +1,4 @@
+// pages/nova-campanha.tsx
 import {
   Box,
   Button,
@@ -17,11 +18,13 @@ export default function NovaCampanhaPage() {
   const [campanha, setCampanha] = useState("");
   const [status, setStatus] = useState("Ativa");
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [previewNome, setPreviewNome] = useState("");
   const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setVideoFile(e.target.files[0]);
+      setPreviewNome(e.target.files[0].name);
     }
   };
 
@@ -29,21 +32,27 @@ export default function NovaCampanhaPage() {
     e.preventDefault();
 
     if (cliente && campanha && videoFile) {
-      const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-      const nova = {
-        id: Date.now().toString(),
-        cliente,
-        nome: campanha,
-        status,
-        videoUrl: URL.createObjectURL(videoFile),
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+        const nova = {
+          id: Date.now().toString(),
+          cliente,
+          nome: campanha,
+          status,
+          videoUrl: reader.result, // arquivo em base64
+        };
+
+        lista.push(nova);
+        localStorage.setItem("campanhas", JSON.stringify(lista));
+
+        router.push("/dashboard");
       };
 
-      lista.push(nova);
-      localStorage.setItem("campanhas", JSON.stringify(lista));
-
-      router.push("/dashboard");
+      reader.readAsDataURL(videoFile); // converte para base64
     } else {
-      alert("Preencha todos os campos e selecione um vídeo.");
+      alert("Preencha todos os campos e selecione um arquivo de mídia.");
     }
   };
 
@@ -85,10 +94,10 @@ export default function NovaCampanhaPage() {
         </FormControl>
 
         <Button variant="outlined" component="label">
-          {videoFile ? videoFile.name : "Selecionar Vídeo"}
+          {previewNome || "Selecionar Vídeo / Imagem / Áudio"}
           <input
             type="file"
-            accept="video/*"
+            accept="video/*,image/*,audio/*"
             hidden
             onChange={handleFileChange}
           />
