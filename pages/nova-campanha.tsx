@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { supabase } from "../lib/supabase"; // ajuste conforme sua estrutura
+import { supabase } from "../lib/supabase"; // ajuste o caminho se necessário
 
 export default function NovaCampanhaPage() {
   const [cliente, setCliente] = useState("");

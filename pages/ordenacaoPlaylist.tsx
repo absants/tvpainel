@@ -30,8 +30,6 @@ export default function OrdenacaoPlaylist() {
       setCampanha(campanhaSelecionada);
       if (Array.isArray(campanhaSelecionada.videos)) {
         setVideos(campanhaSelecionada.videos);
-      } else {
-        setVideos([]);
       }
     }
   }, [id]);
