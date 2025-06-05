@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { supabase } from "../lib/supabase"; // ajuste o caminho se necessário
+import { supabase } from "../lib/supabase"; // ajuste conforme necessário
 
 export default function NovaCampanhaPage() {
   const [cliente, setCliente] = useState("");
@@ -52,8 +52,11 @@ export default function NovaCampanhaPage() {
       return;
     }
 
+    console.log("Iniciando upload para Supabase...");
+
     const uploads = videoFiles.map(async (file) => {
       const filename = `${Date.now()}-${file.name}`;
+      console.log("📦 Enviando:", filename);
 
       const { error } = await supabase.storage
         .from("videos")
@@ -63,13 +66,15 @@ export default function NovaCampanhaPage() {
         });
 
       if (error) {
-        console.error("Erro ao subir:", error);
+        console.error(`❌ Erro ao subir ${file.name}:`, error.message);
         return null;
       }
 
       const { publicUrl } = supabase.storage
         .from("videos")
         .getPublicUrl(filename).data;
+
+      console.log("✅ Upload concluído:", publicUrl);
 
       return {
         id: Date.now().toString() + Math.random(),
@@ -93,6 +98,8 @@ export default function NovaCampanhaPage() {
       data: new Date().toLocaleString("pt-BR"),
       videos,
     };
+
+    console.log("🎬 Salvando campanha:", nova);
 
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
     lista.push(nova);
