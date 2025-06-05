@@ -16,7 +16,7 @@ export default function NovaCampanhaPage() {
   const [cliente, setCliente] = useState("");
   const [campanha, setCampanha] = useState("");
   const [status, setStatus] = useState("Ativa");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [previewNome, setPreviewNome] = useState("");
   const router = useRouter();
 
@@ -24,23 +24,23 @@ export default function NovaCampanhaPage() {
   const tamanhoMaximoMB = 10;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const extensao = file.name.split(".").pop()?.toLowerCase();
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
 
-      if (!extensao || !tiposPermitidos.includes(extensao)) {
-        alert("Tipo de arquivo não permitido. Use .mp4, .h264, .jpg, .png");
-        return;
-      }
+    files.forEach((file) => {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (!ext || !tiposPermitidos.includes(ext)) return;
+      if (file.size > tamanhoMaximoMB * 1024 * 1024) return;
+      validFiles.push(file);
+    });
 
-      if (file.size > tamanhoMaximoMB * 1024 * 1024) {
-        alert("Arquivo excede o limite de 10MB.");
-        return;
-      }
-
-      setVideoFile(file);
-      setPreviewNome(file.name);
+    if (validFiles.length === 0) {
+      alert("Nenhum arquivo válido selecionado.");
+      return;
     }
+
+    setVideoFiles(validFiles);
+    setPreviewNome(`${validFiles.length} arquivo(s) selecionado(s)`);
   };
 
   const getMimeType = (extensao: string): string => {
@@ -62,47 +62,48 @@ export default function NovaCampanhaPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (cliente && campanha && videoFile) {
-      const extensao = videoFile.name.split(".").pop() || "";
-      const tipoMime = getMimeType(extensao);
-      const reader = new FileReader();
+    if (cliente && campanha && videoFiles.length > 0) {
+      const readerPromises = videoFiles.map((file) => {
+        const ext = file.name.split(".").pop() || "";
+        const mime = getMimeType(ext);
 
-      reader.onloadend = () => {
-        let resultado: string = reader.result as string;
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            let resultado = reader.result as string;
+            if (resultado.startsWith("data:application/octet-stream")) {
+              resultado = resultado.replace(
+                /^data:application\/octet-stream/,
+                `data:${mime}`
+              );
+            }
+            resolve({
+              id: Date.now().toString() + Math.random(),
+              nome: file.name,
+              arquivo: resultado,
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+      });
 
-        if (resultado.startsWith("data:application/octet-stream")) {
-          resultado = resultado.replace(
-            /^data:application\/octet-stream/,
-            `data:${tipoMime}`
-          );
-        }
-
-        const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-        const timestamp = Date.now().toString();
-
+      Promise.all(readerPromises).then((videos) => {
         const nova = {
-          id: timestamp,
+          id: Date.now().toString(),
           cliente,
           nome: campanha,
           status,
           data: new Date().toLocaleString("pt-BR"),
-          videos: [
-            {
-              id: timestamp,
-              nome: campanha,
-              arquivo: resultado,
-            },
-          ],
+          videos,
         };
 
+        const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
         lista.push(nova);
         localStorage.setItem("campanhas", JSON.stringify(lista));
         router.push("/dashboard");
-      };
-
-      reader.readAsDataURL(videoFile);
+      });
     } else {
-      alert("Preencha todos os campos e selecione um arquivo de mídia.");
+      alert("Preencha todos os campos e selecione pelo menos um arquivo.");
     }
   };
 
@@ -144,10 +145,11 @@ export default function NovaCampanhaPage() {
         </FormControl>
 
         <Button variant="outlined" component="label">
-          {previewNome || "Selecionar PNG, JPG, MP4 ou H264 (até 10MB)"}
+          {previewNome || "Selecionar arquivos (PNG, JPG, MP4, H264 - até 10MB)"}
           <input
             type="file"
             accept=".png,.jpg,.jpeg,.mp4,.h264"
+            multiple
             hidden
             onChange={handleFileChange}
           />
