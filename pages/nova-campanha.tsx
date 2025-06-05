@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { supabase } from "../lib/supabase"; // ajuste conforme sua estrutura
 
 export default function NovaCampanhaPage() {
   const [cliente, setCliente] = useState("");
@@ -43,68 +44,60 @@ export default function NovaCampanhaPage() {
     setPreviewNome(`${validFiles.length} arquivo(s) selecionado(s)`);
   };
 
-  const getMimeType = (extensao: string): string => {
-    switch (extensao.toLowerCase()) {
-      case "mp4":
-        return "video/mp4";
-      case "h264":
-        return "video/h264";
-      case "jpg":
-      case "jpeg":
-        return "image/jpeg";
-      case "png":
-        return "image/png";
-      default:
-        return "application/octet-stream";
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (cliente && campanha && videoFiles.length > 0) {
-      const readerPromises = videoFiles.map((file) => {
-        const ext = file.name.split(".").pop() || "";
-        const mime = getMimeType(ext);
-
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            let resultado = reader.result as string;
-            if (resultado.startsWith("data:application/octet-stream")) {
-              resultado = resultado.replace(
-                /^data:application\/octet-stream/,
-                `data:${mime}`
-              );
-            }
-            resolve({
-              id: Date.now().toString() + Math.random(),
-              nome: file.name,
-              arquivo: resultado,
-            });
-          };
-          reader.readAsDataURL(file);
-        });
-      });
-
-      Promise.all(readerPromises).then((videos) => {
-        const nova = {
-          id: Date.now().toString(),
-          cliente,
-          nome: campanha,
-          status,
-          data: new Date().toLocaleString("pt-BR"),
-          videos,
-        };
-
-        const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-        lista.push(nova);
-        localStorage.setItem("campanhas", JSON.stringify(lista));
-        router.push("/dashboard");
-      });
-    } else {
-      alert("Preencha todos os campos e selecione pelo menos um arquivo.");
+    if (!cliente || !campanha || videoFiles.length === 0) {
+      alert("Preencha todos os campos e selecione ao menos um arquivo.");
+      return;
     }
+
+    const uploads = videoFiles.map(async (file) => {
+      const filename = `${Date.now()}-${file.name}`;
+
+      const { error } = await supabase.storage
+        .from("videos")
+        .upload(filename, file, {
+          contentType: file.type,
+          upsert: true,
+        });
+
+      if (error) {
+        console.error("Erro ao subir:", error);
+        return null;
+      }
+
+      const { publicUrl } = supabase.storage
+        .from("videos")
+        .getPublicUrl(filename).data;
+
+      return {
+        id: Date.now().toString() + Math.random(),
+        nome: file.name,
+        arquivo: publicUrl,
+      };
+    });
+
+    const videos = (await Promise.all(uploads)).filter(Boolean);
+
+    if (videos.length === 0) {
+      alert("Erro ao subir os vídeos.");
+      return;
+    }
+
+    const nova = {
+      id: Date.now().toString(),
+      cliente,
+      nome: campanha,
+      status,
+      data: new Date().toLocaleString("pt-BR"),
+      videos,
+    };
+
+    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    lista.push(nova);
+    localStorage.setItem("campanhas", JSON.stringify(lista));
+    router.push("/dashboard");
   };
 
   return (
