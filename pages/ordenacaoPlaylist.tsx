@@ -8,7 +8,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton,
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useEffect, useState } from 'react';
@@ -25,21 +24,12 @@ export default function OrdenacaoPlaylist() {
     if (!id) return;
 
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const campanhaEncontrada = lista.find((c) => c.id === id);
+    const campanhaSelecionada = lista.find((c) => c.id === id);
 
-    if (campanhaEncontrada) {
-      setCampanha(campanhaEncontrada);
-
-      if (campanhaEncontrada.videos && Array.isArray(campanhaEncontrada.videos)) {
-        setVideos(campanhaEncontrada.videos);
-      } else if (campanhaEncontrada.videoUrl) {
-        setVideos([
-          {
-            id: campanhaEncontrada.id,
-            nome: campanhaEncontrada.nome,
-            arquivo: campanhaEncontrada.videoUrl,
-          },
-        ]);
+    if (campanhaSelecionada) {
+      setCampanha(campanhaSelecionada);
+      if (Array.isArray(campanhaSelecionada.videos)) {
+        setVideos(campanhaSelecionada.videos);
       } else {
         setVideos([]);
       }
@@ -58,15 +48,9 @@ export default function OrdenacaoPlaylist() {
 
   const salvarOrdem = () => {
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const novaLista = lista.map((c) => {
-      if (c.id === id) {
-        return {
-          ...c,
-          videos,
-        };
-      }
-      return c;
-    });
+    const novaLista = lista.map((c) =>
+      c.id === id ? { ...c, videos } : c
+    );
     localStorage.setItem("campanhas", JSON.stringify(novaLista));
     alert("Ordem salva com sucesso!");
     router.push(`/campanhas/${id}`);
@@ -81,18 +65,57 @@ export default function OrdenacaoPlaylist() {
       >
         Voltar
       </Button>
+
       <Typography variant="h5" gutterBottom>
         Ordenar Vídeos da Campanha #{id}
       </Typography>
+
+      {campanha && (
+        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+          <Typography fontWeight={600}>
+            Cliente: <span style={{ fontWeight: 400 }}>{campanha.cliente}</span>
+          </Typography>
+          <Typography fontWeight={600}>
+            Campanha: <span style={{ fontWeight: 400 }}>{campanha.nome}</span>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Carregada em: {campanha.data || 'Data não disponível'}
+          </Typography>
+        </Paper>
+      )}
+
       <Paper elevation={3} sx={{ p: 2 }}>
-        <List>
-          <ListItem>
-            <ListItemText
-              primary={`Cliente: ${campanha?.cliente || 'N/A'}`}
-              secondary={`Campanha: ${campanha?.nome || 'N/A'} • Carregada em: ${campanha?.data || 'Data não disponível'}`}
-            />
-          </ListItem>
-        </List>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="playlist">
+            {(provided) => (
+              <List {...provided.droppableProps} ref={provided.innerRef}>
+                {videos.map((video, index) => (
+                  <Draggable key={video.id} draggableId={video.id} index={index}>
+                    {(provided) => (
+                      <ListItem
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        sx={{
+                          border: '1px solid #ccc',
+                          mb: 1,
+                          borderRadius: 1,
+                          backgroundColor: '#f9f9f9',
+                        }}
+                      >
+                        <ListItemText
+                          primary={`${index + 1}. ${video.nome}`}
+                        />
+                      </ListItem>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </List>
+            )}
+          </Droppable>
+        </DragDropContext>
+
         <Box textAlign="right" mt={2}>
           <Button variant="contained" color="primary" onClick={salvarOrdem}>
             Salvar Ordem

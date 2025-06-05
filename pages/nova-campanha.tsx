@@ -1,4 +1,3 @@
-// pages/nova-campanha.tsx
 import {
   Box,
   Button,
@@ -71,7 +70,6 @@ export default function NovaCampanhaPage() {
       reader.onloadend = () => {
         let resultado: string = reader.result as string;
 
-        // Se tiver prefixo genérico, forçamos o correto
         if (resultado.startsWith("data:application/octet-stream")) {
           resultado = resultado.replace(
             /^data:application\/octet-stream/,
@@ -80,12 +78,21 @@ export default function NovaCampanhaPage() {
         }
 
         const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+        const timestamp = Date.now().toString();
+
         const nova = {
-          id: Date.now().toString(),
+          id: timestamp,
           cliente,
           nome: campanha,
           status,
-          videoUrl: resultado,
+          data: new Date().toLocaleString("pt-BR"),
+          videos: [
+            {
+              id: timestamp,
+              nome: campanha,
+              arquivo: resultado,
+            },
+          ],
         };
 
         lista.push(nova);
