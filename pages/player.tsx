@@ -1,26 +1,20 @@
+// player.tsx - atualizado para usar ordem global dos vídeos
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 
 export default function PlayerPage() {
   const router = useRouter();
-  const { id } = router.query;
-
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videos, setVideos] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
-    if (!id) return;
-
-    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const campanha = lista.find((c) => c.id === id);
-
-    if (campanha && Array.isArray(campanha.videos)) {
-      const urls = campanha.videos.map((v: any) => v.arquivo);
-      setVideos(urls);
-    }
-  }, [id]);
+    const ordem = JSON.parse(localStorage.getItem("ordemGlobal") || "[]");
+    const urls = ordem.map((v: any) => v.arquivo);
+    setVideos(urls);
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -60,7 +54,7 @@ export default function PlayerPage() {
   if (videos.length === 0) {
     return (
       <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem" }}>
-        Nenhum vídeo encontrado para a campanha.
+        Nenhum vídeo encontrado na ordem global.
       </div>
     );
   }

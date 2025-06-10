@@ -1,4 +1,5 @@
-import { useRouter } from 'next/router';
+// ordenacaoPlaylist.tsx - refatorado para ordenação global de todos os vídeos
+
 import {
   Box,
   Button,
@@ -8,33 +9,33 @@ import {
   List,
   ListItem,
   ListItemText,
-} from '@mui/material';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { useEffect, useState } from 'react';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+} from "@mui/material";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { useEffect, useState } from "react";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useRouter } from "next/router";
 
 export default function OrdenacaoPlaylist() {
+  const [videos, setVideos] = useState<any[]>([]);
   const router = useRouter();
-  const { id } = router.query;
-
-  const [videos, setVideos] = useState([]);
-  const [campanha, setCampanha] = useState<any>(null);
 
   useEffect(() => {
-    if (!id) return;
-
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const campanhaSelecionada = lista.find((c) => c.id === id);
 
-    if (campanhaSelecionada) {
-      setCampanha(campanhaSelecionada);
-      if (Array.isArray(campanhaSelecionada.videos)) {
-        setVideos(campanhaSelecionada.videos);
-      }
-    }
-  }, [id]);
+    const todosVideos = lista.flatMap((campanha: any) =>
+      (campanha.videos || []).map((video: any, idx: number) => ({
+        ...video,
+        campanhaId: campanha.id,
+        cliente: campanha.cliente,
+        campanhaNome: campanha.nome,
+        data: campanha.data,
+      }))
+    );
 
-  const onDragEnd = (result) => {
+    setVideos(todosVideos);
+  }, []);
+
+  const onDragEnd = (result: any) => {
     if (!result.destination) return;
 
     const reordered = Array.from(videos);
@@ -45,42 +46,19 @@ export default function OrdenacaoPlaylist() {
   };
 
   const salvarOrdem = () => {
-    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    const novaLista = lista.map((c) =>
-      c.id === id ? { ...c, videos } : c
-    );
-    localStorage.setItem("campanhas", JSON.stringify(novaLista));
-    alert("Ordem salva com sucesso!");
-    router.push(`/campanhas/${id}`);
+    localStorage.setItem("ordemGlobal", JSON.stringify(videos));
+    alert("Ordem global salva com sucesso!");
   };
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => router.back()}
-        sx={{ mb: 2 }}
-      >
+      <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()} sx={{ mb: 2 }}>
         Voltar
       </Button>
 
       <Typography variant="h5" gutterBottom>
-        Ordenar Vídeos da Campanha #{id}
+        Ordenar Todos os Vídeos
       </Typography>
-
-      {campanha && (
-        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-          <Typography fontWeight={600}>
-            Cliente: <span style={{ fontWeight: 400 }}>{campanha.cliente}</span>
-          </Typography>
-          <Typography fontWeight={600}>
-            Campanha: <span style={{ fontWeight: 400 }}>{campanha.nome}</span>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Carregada em: {campanha.data || 'Data não disponível'}
-          </Typography>
-        </Paper>
-      )}
 
       <Paper elevation={3} sx={{ p: 2 }}>
         <DragDropContext onDragEnd={onDragEnd}>
@@ -95,14 +73,16 @@ export default function OrdenacaoPlaylist() {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         sx={{
-                          border: '1px solid #ccc',
+                          border: "1px solid #ccc",
                           mb: 1,
                           borderRadius: 1,
-                          backgroundColor: '#f9f9f9',
+                          backgroundColor: "#f9f9f9",
+                          flexDirection: "column",
                         }}
                       >
                         <ListItemText
                           primary={`${index + 1}. ${video.nome}`}
+                          secondary={`Cliente: ${video.cliente} | Campanha: ${video.campanhaNome}`}
                         />
                       </ListItem>
                     )}
