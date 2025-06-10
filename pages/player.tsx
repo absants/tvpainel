@@ -146,7 +146,7 @@ export default function PlayerPage() {
       >
         <img
           src="logo-impacto.jpg"
-          style={{ height: "40px", objectFit: "contain" }}
+          style={{ height: "80px", objectFit: "contain" }}
         />
         <span
           style={{
