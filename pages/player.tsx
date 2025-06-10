@@ -1,5 +1,3 @@
-// player.tsx - busca ordemGlobal centralizada no Supabase
-
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -22,8 +20,7 @@ export default function PlayerPage() {
         return;
       }
 
-      console.table(data); // 🔍 debug visual
-
+      console.table(data); // debug
       const urls = data.map((item) => `${item.arquivo}?t=${Date.now()}`);
       setVideos(urls);
     };
@@ -34,17 +31,19 @@ export default function PlayerPage() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString("pt-BR", {
+      const hora = now.toLocaleTimeString("pt-BR", {
         hour: "2-digit",
         minute: "2-digit",
       });
-      const date = now.toLocaleDateString("pt-BR", {
+      const data = now.toLocaleDateString("pt-BR", {
         weekday: "long",
         day: "2-digit",
-        month: "short",
+        month: "long",
       });
-      const capitalized = date.charAt(0).toUpperCase() + date.slice(1);
-      setCurrentTime(`${capitalized} • ${time}`);
+
+      const formatado =
+        data.toUpperCase().replace("-FEIRA", " FEIRA") + " - " + hora;
+      setCurrentTime(formatado);
     };
 
     updateTime();
@@ -78,26 +77,6 @@ export default function PlayerPage() {
     }
   }, [currentIndex]);
 
-  if (videos.length === 0) {
-    return (
-      <div
-        style={{
-          color: "#fff",
-          backgroundColor: "#000",
-          padding: "2rem",
-          fontSize: "1.5rem",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          overflow: "hidden",
-        }}
-      >
-        Nenhum vídeo encontrado para reprodução.
-      </div>
-    );
-  }
-
   return (
     <div
       style={{
@@ -107,24 +86,46 @@ export default function PlayerPage() {
         padding: 0,
         overflow: "hidden",
         position: "relative",
+        backgroundColor: "#000",
       }}
     >
-      <video
-        ref={videoRef}
-        src={videos[currentIndex]}
-        autoPlay
-        muted
-        controls={false}
-        style={{
-          width: "100vw",
-          height: "100vh",
-          objectFit: "cover",
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-      />
+      {videos.length > 0 ? (
+        <video
+          ref={videoRef}
+          src={videos[currentIndex]}
+          autoPlay
+          muted
+          controls={false}
+          style={{
+            width: "100vw",
+            height: "100vh",
+            objectFit: "cover",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 1,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#000",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            color: "#fff",
+            fontSize: "1.6rem",
+            fontWeight: 600,
+            zIndex: 1,
+          }}
+        >
+          NENHUM VÍDEO DISPONÍVEL
+        </div>
+      )}
 
+      {/* Rodapé */}
       <div
         style={{
           position: "absolute",
@@ -132,8 +133,8 @@ export default function PlayerPage() {
           left: 0,
           right: 0,
           height: "60px",
-          background: "rgba(0, 0, 0, 0.65)",
-          color: "#fff",
+          backgroundColor: "#eae7e1", // cinza claro
+          color: "#000",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -143,12 +144,20 @@ export default function PlayerPage() {
           zIndex: 2,
         }}
       >
-        <strong
-          style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}
+        <img
+          src="/logo-impacto.png" // ⬅️ Troque para o path real do seu logo
+          alt="Impacto MídiaTV"
+          style={{ height: "40px", objectFit: "contain" }}
+        />
+        <span
+          style={{
+            fontWeight: 700,
+            color: "#1D3C6E",
+            fontSize: "16px",
+          }}
         >
-          Impacto Mídia TV
-        </strong>
-        <span style={{ opacity: 0.9 }}>{currentTime}</span>
+          {currentTime}
+        </span>
       </div>
     </div>
   );
