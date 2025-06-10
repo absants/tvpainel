@@ -1,4 +1,3 @@
-// pages/dashboard.tsx
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -25,13 +24,19 @@ interface Campanha {
   cliente: string;
   nome: string;
   status: 'Ativa' | 'Inativa';
-  videoUrl?: string;
+  videos?: any[];
+  data?: string;
 }
 
 export default function Dashboard() {
   const router = useRouter();
   const [campanhas, setCampanhas] = useState<Campanha[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<'Todas' | 'Ativa' | 'Inativa'>('Todas');
+
+  useEffect(() => {
+    const auth = localStorage.getItem('auth');
+    if (auth !== 'true') router.replace('/login');
+  }, [router]);
 
   useEffect(() => {
     const stored = localStorage.getItem('campanhas');
