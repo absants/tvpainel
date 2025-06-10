@@ -13,7 +13,7 @@ export default function PlayerPage() {
     const fetchOrdemGlobal = async () => {
       const { data, error } = await supabase
         .from("ordem_global")
-        .select("arquivo")
+        .select("arquivo, ordem")
         .order("ordem", { ascending: true });
 
       if (error || !data || data.length === 0) {
@@ -21,6 +21,8 @@ export default function PlayerPage() {
         setVideos([]);
         return;
       }
+
+      console.table(data); // 🔍 debug visual
 
       const urls = data.map((item) => `${item.arquivo}?t=${Date.now()}`);
       setVideos(urls);
@@ -32,8 +34,15 @@ export default function PlayerPage() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
-      const date = now.toLocaleDateString("pt-BR", { weekday: 'long', day: '2-digit', month: 'short' });
+      const time = now.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const date = now.toLocaleDateString("pt-BR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "short",
+      });
       const capitalized = date.charAt(0).toUpperCase() + date.slice(1);
       setCurrentTime(`${capitalized} • ${time}`);
     };
@@ -71,14 +80,35 @@ export default function PlayerPage() {
 
   if (videos.length === 0) {
     return (
-      <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden" }}>
+      <div
+        style={{
+          color: "#fff",
+          backgroundColor: "#000",
+          padding: "2rem",
+          fontSize: "1.5rem",
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          overflow: "hidden",
+        }}
+      >
         Nenhum vídeo encontrado para reprodução.
       </div>
     );
   }
 
   return (
-    <div style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        margin: 0,
+        padding: 0,
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
       <video
         ref={videoRef}
         src={videos[currentIndex]}
@@ -113,7 +143,11 @@ export default function PlayerPage() {
           zIndex: 2,
         }}
       >
-        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>Impacto Mídia TV</strong>
+        <strong
+          style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}
+        >
+          Impacto Mídia TV
+        </strong>
         <span style={{ opacity: 0.9 }}>{currentTime}</span>
       </div>
     </div>
