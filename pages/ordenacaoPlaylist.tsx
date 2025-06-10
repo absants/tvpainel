@@ -1,105 +1,119 @@
-// ordenacaoPlaylist.tsx - refatorado para ordenação global de todos os vídeos
+// player.tsx - valida ordemGlobal conforme campanhas existentes
 
-import {
-  Box,
-  Button,
-  Container,
-  Typography,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-} from "@mui/material";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { useEffect, useState } from "react";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useRouter } from "next/router";
+import { useEffect, useRef, useState } from "react";
 
-export default function OrdenacaoPlaylist() {
-  const [videos, setVideos] = useState<any[]>([]);
-  const router = useRouter();
+export default function PlayerPage() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videos, setVideos] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
-    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const ordem = JSON.parse(localStorage.getItem("ordemGlobal") || "[]");
+    const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
 
-    const todosVideos = lista.flatMap((campanha: any) =>
-      (campanha.videos || []).map((video: any, idx: number) => ({
-        ...video,
-        campanhaId: campanha.id,
-        cliente: campanha.cliente,
-        campanhaNome: campanha.nome,
-        data: campanha.data,
-      }))
+    const todosVideosAtuais = campanhas.flatMap((c: any) =>
+      (c.videos || []).map((v: any) => v.arquivo)
     );
 
-    setVideos(todosVideos);
+    const ordemValida = ordem.filter((v: any) =>
+      todosVideosAtuais.includes(v.arquivo)
+    );
+
+    if (ordemValida.length === 0) {
+      localStorage.removeItem("ordemGlobal");
+      setVideos([]);
+    } else {
+      setVideos(ordemValida.map((v: any) => v.arquivo));
+    }
   }, []);
 
-  const onDragEnd = (result: any) => {
-    if (!result.destination) return;
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const time = now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+      const date = now.toLocaleDateString("pt-BR", { weekday: 'long', day: '2-digit', month: 'short' });
+      const capitalized = date.charAt(0).toUpperCase() + date.slice(1);
+      setCurrentTime(`${capitalized} • ${time}`);
+    };
 
-    const reordered = Array.from(videos);
-    const [moved] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, moved);
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-    setVideos(reordered);
-  };
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
 
-  const salvarOrdem = () => {
-    localStorage.setItem("ordemGlobal", JSON.stringify(videos));
-    alert("Ordem global salva com sucesso!");
-  };
+    const handleTimeUpdate = () => {
+      if (videoElement.currentTime >= 10) {
+        videoElement.removeEventListener("timeupdate", handleTimeUpdate);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % videos.length);
+      }
+    };
+
+    videoElement.addEventListener("timeupdate", handleTimeUpdate);
+
+    return () => {
+      videoElement.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, [videos, currentIndex]);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (videoElement) {
+      videoElement.load();
+      videoElement.play().catch(() => {});
+    }
+  }, [currentIndex]);
+
+  if (videos.length === 0) {
+    return (
+      <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden" }}>
+        Nenhum vídeo encontrado para reprodução.
+      </div>
+    );
+  }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()} sx={{ mb: 2 }}>
-        Voltar
-      </Button>
+    <div style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}>
+      <video
+        ref={videoRef}
+        src={videos[currentIndex]}
+        autoPlay
+        muted
+        controls={false}
+        style={{
+          width: "100vw",
+          height: "100vh",
+          objectFit: "cover",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      />
 
-      <Typography variant="h5" gutterBottom>
-        Ordenar Todos os Vídeos
-      </Typography>
-
-      <Paper elevation={3} sx={{ p: 2 }}>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="playlist">
-            {(provided) => (
-              <List {...provided.droppableProps} ref={provided.innerRef}>
-                {videos.map((video, index) => (
-                  <Draggable key={video.id} draggableId={video.id} index={index}>
-                    {(provided) => (
-                      <ListItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        sx={{
-                          border: "1px solid #ccc",
-                          mb: 1,
-                          borderRadius: 1,
-                          backgroundColor: "#f9f9f9",
-                          flexDirection: "column",
-                        }}
-                      >
-                        <ListItemText
-                          primary={`${index + 1}. ${video.nome}`}
-                          secondary={`Cliente: ${video.cliente} | Campanha: ${video.campanhaNome}`}
-                        />
-                      </ListItem>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </List>
-            )}
-          </Droppable>
-        </DragDropContext>
-
-        <Box textAlign="right" mt={2}>
-          <Button variant="contained" color="primary" onClick={salvarOrdem}>
-            Salvar Ordem
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          height: "60px",
+          background: "rgba(0, 0, 0, 0.65)",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 30px",
+          fontSize: "18px",
+          fontFamily: "'Segoe UI', sans-serif",
+          zIndex: 2,
+        }}
+      >
+        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>Impacto Mídia TV</strong>
+        <span style={{ opacity: 0.9 }}>{currentTime}</span>
+      </div>
+    </div>
   );
 }
