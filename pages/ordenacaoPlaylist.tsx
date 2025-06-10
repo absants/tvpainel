@@ -1,4 +1,4 @@
-// ordenacaoPlaylist.tsx - refatorado para ordenação global de todos os vídeos
+// ordenacaoPlaylist.tsx - salva ordenação global no Supabase
 
 import {
   Box,
@@ -14,6 +14,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useEffect, useState } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/router";
+import { supabase } from "../lib/supabase";
 
 export default function OrdenacaoPlaylist() {
   const [videos, setVideos] = useState<any[]>([]);
@@ -23,7 +24,7 @@ export default function OrdenacaoPlaylist() {
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
 
     const todosVideos = lista.flatMap((campanha: any) =>
-      (campanha.videos || []).map((video: any, idx: number) => ({
+      (campanha.videos || []).map((video: any) => ({
         ...video,
         campanhaId: campanha.id,
         cliente: campanha.cliente,
@@ -45,9 +46,22 @@ export default function OrdenacaoPlaylist() {
     setVideos(reordered);
   };
 
-  const salvarOrdem = () => {
-    localStorage.setItem("ordemGlobal", JSON.stringify(videos));
-    alert("Ordem global salva com sucesso!");
+  const salvarOrdem = async () => {
+    const ordem = videos.map((v, index) => ({
+      arquivo: v.arquivo,
+      ordem: index,
+    }));
+
+    const { error } = await supabase.from("ordem_global").upsert(ordem, {
+      onConflict: "arquivo",
+    });
+
+    if (error) {
+      alert("Erro ao salvar ordem no Supabase.");
+      console.error(error);
+    } else {
+      alert("Ordem salva com sucesso!");
+    }
   };
 
   return (
@@ -103,4 +117,3 @@ export default function OrdenacaoPlaylist() {
     </Container>
   );
 }
-

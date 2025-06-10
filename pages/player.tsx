@@ -1,6 +1,7 @@
-// player.tsx - removido o fallback para Supabase, usa apenas campanhas cadastradas
+// player.tsx - busca ordemGlobal centralizada no Supabase
 
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function PlayerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,27 +10,23 @@ export default function PlayerPage() {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
-    const ordem = JSON.parse(localStorage.getItem("ordemGlobal") || "null");
-    const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const fetchOrdemGlobal = async () => {
+      const { data, error } = await supabase
+        .from("ordem_global")
+        .select("arquivo")
+        .order("ordem", { ascending: true });
 
-    if (ordem) {
-      const todosVideosAtuais = campanhas.flatMap((c: any) =>
-        (c.videos || []).map((v: any) => v.arquivo)
-      );
-
-      const ordemValida = ordem.filter((v: any) =>
-        todosVideosAtuais.includes(v.arquivo)
-      );
-
-      if (ordemValida.length === 0) {
-        localStorage.removeItem("ordemGlobal");
+      if (error || !data || data.length === 0) {
+        console.warn("Nenhuma ordem de vídeo encontrada no Supabase.");
         setVideos([]);
-      } else {
-        setVideos(ordemValida.map((v: any) => `${v.arquivo}?t=${Date.now()}`));
+        return;
       }
-    } else {
-      setVideos([]);
-    }
+
+      const urls = data.map((item) => `${item.arquivo}?t=${Date.now()}`);
+      setVideos(urls);
+    };
+
+    fetchOrdemGlobal();
   }, []);
 
   useEffect(() => {
