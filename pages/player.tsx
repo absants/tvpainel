@@ -1,4 +1,4 @@
-// player.tsx - correções: avança corretamente aos 10s, primeira letra maiúscula, sem scroll
+// player.tsx - adiciona cache busting com timestamp para evitar cache do navegador
 
 import { useEffect, useRef, useState } from "react";
 
@@ -10,8 +10,23 @@ export default function PlayerPage() {
 
   useEffect(() => {
     const ordem = JSON.parse(localStorage.getItem("ordemGlobal") || "[]");
-    const urls = ordem.map((v: any) => v.arquivo);
-    setVideos(urls);
+    const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
+
+    const todosVideosAtuais = campanhas.flatMap((c: any) =>
+      (c.videos || []).map((v: any) => v.arquivo)
+    );
+
+    const ordemValida = ordem.filter((v: any) =>
+      todosVideosAtuais.includes(v.arquivo)
+    );
+
+    if (ordemValida.length === 0) {
+      localStorage.removeItem("ordemGlobal");
+      setVideos([]);
+    } else {
+      // Adiciona timestamp para evitar cache
+      setVideos(ordemValida.map((v: any) => `${v.arquivo}?t=${Date.now()}`));
+    }
   }, []);
 
   useEffect(() => {
