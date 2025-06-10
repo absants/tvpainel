@@ -99,7 +99,8 @@ export default function PlayerPage() {
         style={{
           position: "absolute",
           bottom: 0,
-          width: "100%",
+          left: 0,
+          right: 0,
           height: "60px",
           background: "rgba(0, 0, 0, 0.65)",
           color: "#fff",
