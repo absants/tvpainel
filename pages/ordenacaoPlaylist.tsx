@@ -1,5 +1,3 @@
-// ordenacaoPlaylist.tsx - salva ordenação global no Supabase
-
 import {
   Box,
   Button,
@@ -47,18 +45,23 @@ export default function OrdenacaoPlaylist() {
   };
 
   const salvarOrdem = async () => {
-    const ordem = videos.map((v, index) => ({
-      arquivo: v.arquivo,
-      ordem: index,
-    }));
-
-    const { error } = await supabase.from("ordem_global").upsert(ordem, {
-      onConflict: "arquivo",
+    const ordem = videos.map((v, index) => {
+      const arquivoBase = v.arquivo.split("?")[0]; // remove timestamp se houver
+      return {
+        arquivo: arquivoBase,
+        ordem: index,
+      };
     });
 
+    console.log("Salvando ordem:", ordem);
+
+    const { error } = await supabase
+      .from("ordem_global")
+      .upsert(ordem, { onConflict: "arquivo" });
+
     if (error) {
+      console.error("Erro ao salvar ordem no Supabase:", error);
       alert("Erro ao salvar ordem no Supabase.");
-      console.error(error);
     } else {
       alert("Ordem salva com sucesso!");
     }
@@ -66,54 +69,14 @@ export default function OrdenacaoPlaylist() {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()} sx={{ mb: 2 }}>
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={() => router.back()}
+        sx={{ mb: 2 }}
+      >
         Voltar
       </Button>
 
       <Typography variant="h5" gutterBottom>
         Ordenar Todos os Vídeos
-      </Typography>
-
-      <Paper elevation={3} sx={{ p: 2 }}>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="playlist">
-            {(provided) => (
-              <List {...provided.droppableProps} ref={provided.innerRef}>
-                {videos.map((video, index) => (
-                  <Draggable key={video.id} draggableId={video.id} index={index}>
-                    {(provided) => (
-                      <ListItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        sx={{
-                          border: "1px solid #ccc",
-                          mb: 1,
-                          borderRadius: 1,
-                          backgroundColor: "#f9f9f9",
-                          flexDirection: "column",
-                        }}
-                      >
-                        <ListItemText
-                          primary={`${index + 1}. ${video.nome}`}
-                          secondary={`Cliente: ${video.cliente} | Campanha: ${video.campanhaNome}`}
-                        />
-                      </ListItem>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </List>
-            )}
-          </Droppable>
-        </DragDropContext>
-
-        <Box textAlign="right" mt={2}>
-          <Button variant="contained" color="primary" onClick={salvarOrdem}>
-            Salvar Ordem
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
-  );
-}
+      </Typog
