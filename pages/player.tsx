@@ -1,4 +1,4 @@
-// player.tsx - com melhorias: tempo máximo de 10s, responsivo, sem barra, textos em PT
+// player.tsx - correções: avança corretamente aos 10s, primeira letra maiúscula, sem scroll
 
 import { useEffect, useRef, useState } from "react";
 
@@ -19,7 +19,8 @@ export default function PlayerPage() {
       const now = new Date();
       const time = now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
       const date = now.toLocaleDateString("pt-BR", { weekday: 'long', day: '2-digit', month: 'short' });
-      setCurrentTime(`${date} • ${time}`);
+      const capitalized = date.charAt(0).toUpperCase() + date.slice(1);
+      setCurrentTime(`${capitalized} • ${time}`);
     };
 
     updateTime();
@@ -31,25 +32,19 @@ export default function PlayerPage() {
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
-    const handleEnded = () => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % videos.length);
-    };
-
     const handleTimeUpdate = () => {
       if (videoElement.currentTime >= 10) {
-        videoElement.pause();
-        handleEnded();
+        videoElement.removeEventListener("timeupdate", handleTimeUpdate);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % videos.length);
       }
     };
 
-    videoElement.addEventListener("ended", handleEnded);
     videoElement.addEventListener("timeupdate", handleTimeUpdate);
 
     return () => {
-      videoElement.removeEventListener("ended", handleEnded);
       videoElement.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [videos]);
+  }, [videos, currentIndex]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -61,7 +56,7 @@ export default function PlayerPage() {
 
   if (videos.length === 0) {
     return (
-      <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden" }}>
         Nenhum vídeo encontrado para reprodução.
       </div>
     );
