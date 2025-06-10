@@ -1,10 +1,8 @@
-// player.tsx - atualizado para usar ordem global dos vídeos
+// player.tsx - com melhorias: tempo máximo de 10s, responsivo, sem barra, textos em PT
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/router";
 
 export default function PlayerPage() {
-  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videos, setVideos] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -19,8 +17,8 @@ export default function PlayerPage() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const date = now.toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'short' });
+      const time = now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+      const date = now.toLocaleDateString("pt-BR", { weekday: 'long', day: '2-digit', month: 'short' });
       setCurrentTime(`${date} • ${time}`);
     };
 
@@ -37,9 +35,19 @@ export default function PlayerPage() {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % videos.length);
     };
 
+    const handleTimeUpdate = () => {
+      if (videoElement.currentTime >= 10) {
+        videoElement.pause();
+        handleEnded();
+      }
+    };
+
     videoElement.addEventListener("ended", handleEnded);
+    videoElement.addEventListener("timeupdate", handleTimeUpdate);
+
     return () => {
       videoElement.removeEventListener("ended", handleEnded);
+      videoElement.removeEventListener("timeupdate", handleTimeUpdate);
     };
   }, [videos]);
 
@@ -53,8 +61,8 @@ export default function PlayerPage() {
 
   if (videos.length === 0) {
     return (
-      <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem" }}>
-        Nenhum vídeo encontrado na ordem global.
+      <div style={{ color: "#fff", backgroundColor: "#000", padding: "2rem", fontSize: "1.5rem", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        Nenhum vídeo encontrado para reprodução.
       </div>
     );
   }
@@ -68,8 +76,8 @@ export default function PlayerPage() {
         muted
         controls={false}
         style={{
-          width: "100%",
-          height: "100%",
+          width: "100vw",
+          height: "100vh",
           objectFit: "cover",
           position: "absolute",
           top: 0,
@@ -94,7 +102,7 @@ export default function PlayerPage() {
           zIndex: 2,
         }}
       >
-        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>TV PAINEL</strong>
+        <strong style={{ letterSpacing: 1, fontSize: 20, color: "#1D7BBA" }}>Impacto Mídia TV</strong>
         <span style={{ opacity: 0.9 }}>{currentTime}</span>
       </div>
     </div>
