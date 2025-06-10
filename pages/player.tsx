@@ -145,7 +145,7 @@ export default function PlayerPage() {
         }}
       >
         <img
-          src="/logo-impacto.png" // ⬅️ Troque para o path real do seu logo
+          src="public/logo-impacto.png" // ⬅️ Troque para o path real do seu logo
           alt="Impacto MídiaTV"
           style={{ height: "40px", objectFit: "contain" }}
         />
