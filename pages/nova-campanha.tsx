@@ -36,7 +36,7 @@ export default function NovaCampanhaPage() {
     });
 
     if (validFiles.length === 0) {
-      alert("Nenhum arquivo válido selecionado.");
+      alert("Nenhum arquivo válido selecionado. Verifique o tipo e tamanho (máx 10MB).");
       return;
     }
 
@@ -52,50 +52,59 @@ export default function NovaCampanhaPage() {
       return;
     }
 
-    const uploads = videoFiles.map(async (file) => {
-      const filename = `${Date.now()}-${file.name}`;
+    try {
+      const uploads = await Promise.all(
+        videoFiles.map(async (file) => {
+          const filename = `${Date.now()}-${file.name}`;
 
-      const { error } = await supabase.storage
-        .from("videos")
-        .upload(filename, file, {
-          contentType: file.type,
-          upsert: true,
-        });
+          const { error } = await supabase.storage
+            .from("videos")
+            .upload(filename, file, {
+              contentType: file.type,
+              upsert: true,
+            });
 
-      if (error) {
-        console.error(`Erro ao subir ${file.name}:`, error.message);
-        return null;
+          if (error) {
+            alert(`Erro ao subir o vídeo ${file.name}: ${error.message}`);
+            return null;
+          }
+
+          const { data } = supabase.storage.from("videos").getPublicUrl(filename);
+
+          return {
+            id: Date.now().toString() + Math.random(),
+            nome: file.name,
+            arquivo: data.publicUrl,
+          };
+        })
+      );
+
+      const videos = uploads.filter(Boolean);
+
+      if (videos.length === 0) {
+        alert("Nenhum vídeo foi salvo. Verifique os arquivos selecionados.");
+        return;
       }
 
-      const { data } = supabase.storage.from("videos").getPublicUrl(filename);
-
-      return {
-        id: Date.now().toString() + Math.random(),
-        nome: file.name,
-        arquivo: data.publicUrl,
+      const nova = {
+        id: Date.now().toString(),
+        cliente,
+        nome: campanha,
+        status,
+        data: new Date().toLocaleString("pt-BR"),
+        videos,
       };
-    });
 
-    const videos = (await Promise.all(uploads)).filter(Boolean);
+      const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
+      lista.push(nova);
+      localStorage.setItem("campanhas", JSON.stringify(lista));
 
-    if (videos.length === 0) {
-      alert("Erro ao subir os arquivos.");
-      return;
+      alert("Campanha criada com sucesso!");
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error("Erro geral ao criar campanha:", err);
+      alert("Erro inesperado ao criar a campanha. Tente novamente.");
     }
-
-    const nova = {
-      id: Date.now().toString(),
-      cliente,
-      nome: campanha,
-      status,
-      data: new Date().toLocaleString("pt-BR"),
-      videos,
-    };
-
-    const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
-    lista.push(nova);
-    localStorage.setItem("campanhas", JSON.stringify(lista));
-    router.push("/dashboard");
   };
 
   return (
@@ -136,8 +145,7 @@ export default function NovaCampanhaPage() {
         </FormControl>
 
         <Button variant="outlined" component="label">
-          {previewNome ||
-            "Selecionar arquivos (PNG, JPG, MP4, H264 - até 10MB)"}
+          {previewNome || "Selecionar arquivos (PNG, JPG, MP4, H264 - até 10MB)"}
           <input
             type="file"
             accept=".png,.jpg,.jpeg,.mp4,.h264"
@@ -150,7 +158,10 @@ export default function NovaCampanhaPage() {
         <Button
           type="submit"
           variant="contained"
-          sx={{ backgroundColor: "#1D7BBA", ":hover": { backgroundColor: "#156b9c" } }}
+          sx={{
+            backgroundColor: "#1D7BBA",
+            ":hover": { backgroundColor: "#156b9c" },
+          }}
         >
           Salvar
         </Button>
