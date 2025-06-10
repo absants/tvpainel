@@ -34,7 +34,7 @@ export default function LoginPage() {
           gutterBottom
           sx={{ color: "#1D1D1D" }}
         >
-          MidiaBairro - Acesso Admin
+          IMPACTO MIDIA TV - Acesso Admin
         </Typography>
         <Box
           component="form"
