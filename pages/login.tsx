@@ -16,7 +16,9 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (usuario === "admin13" && senha === "Tv987654") {
+      localStorage.setItem("auth", "true");
       router.push("/dashboard");
     } else {
       alert("Usuário ou senha inválidos");
@@ -26,7 +28,12 @@ export default function LoginPage() {
   return (
     <Container maxWidth="sm">
       <Paper elevation={4} sx={{ mt: 10, p: 4, backgroundColor: "#f9f9f9" }}>
-        <Typography variant="h5" align="center" gutterBottom sx={{ color: "#1D1D1D" }}>
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ color: "#1D1D1D" }}
+        >
           MidiaBairro - Acesso Admin
         </Typography>
         <Box
