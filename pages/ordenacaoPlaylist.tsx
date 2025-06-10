@@ -79,4 +79,49 @@ export default function OrdenacaoPlaylist() {
 
       <Typography variant="h5" gutterBottom>
         Ordenar Todos os Vídeos
-      </Typog
+      </Typography>
+
+      <Paper elevation={3} sx={{ p: 2 }}>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="playlist">
+            {(provided) => (
+              <List {...provided.droppableProps} ref={provided.innerRef}>
+                {videos.map((video, index) => (
+                  <Draggable key={video.id} draggableId={video.id} index={index}>
+                    {(provided) => (
+                      <ListItem
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        sx={{
+                          border: "1px solid #ccc",
+                          mb: 1,
+                          borderRadius: 1,
+                          backgroundColor: "#f9f9f9",
+                          flexDirection: "column",
+                          cursor: "move",
+                        }}
+                      >
+                        <ListItemText
+                          primary={`${index + 1}. ${video.nome}`}
+                          secondary={`Cliente: ${video.cliente} | Campanha: ${video.campanhaNome}`}
+                        />
+                      </ListItem>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </List>
+            )}
+          </Droppable>
+        </DragDropContext>
+
+        <Box textAlign="right" mt={2}>
+          <Button variant="contained" color="primary" onClick={salvarOrdem}>
+            Salvar Ordem
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
+  );
+}
