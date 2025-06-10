@@ -18,6 +18,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface Campanha {
   id: string;
@@ -53,13 +54,32 @@ export default function Dashboard() {
     router.push('/nova-campanha');
   };
 
-  const handleExcluir = (id: string) => {
+  const handleExcluir = async (id: string) => {
     const confirmacao = confirm("Tem certeza que deseja excluir esta campanha?");
     if (!confirmacao) return;
 
-    const atualizadas = campanhas.filter(c => c.id !== id);
-    localStorage.setItem('campanhas', JSON.stringify(atualizadas));
+    const listaAtual = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const campanhaExcluida = listaAtual.find((c: any) => c.id === id);
+
+    const atualizadas = listaAtual.filter((c: any) => c.id !== id);
+    localStorage.setItem("campanhas", JSON.stringify(atualizadas));
     setCampanhas(atualizadas);
+
+    if (campanhaExcluida?.videos?.length > 0) {
+      const arquivos = campanhaExcluida.videos.map((v: any) => v.arquivo);
+
+      const { error } = await supabase
+        .from("ordem_global")
+        .delete()
+        .in("arquivo", arquivos);
+
+      if (error) {
+        console.error("Erro ao excluir vídeos do Supabase:", error);
+        alert("Campanha excluída localmente, mas houve erro ao remover vídeos do servidor.");
+      }
+    }
+
+    alert("Campanha excluída com sucesso.");
   };
 
   const campanhasFiltradas =
