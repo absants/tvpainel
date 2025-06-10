@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { supabase } from "../lib/supabase"; // ajuste conforme necessário
+import { supabase } from "../lib/supabase";
 
 export default function NovaCampanhaPage() {
   const [cliente, setCliente] = useState("");
@@ -52,11 +52,8 @@ export default function NovaCampanhaPage() {
       return;
     }
 
-    console.log("Iniciando upload para Supabase...");
-
     const uploads = videoFiles.map(async (file) => {
       const filename = `${Date.now()}-${file.name}`;
-      console.log("📦 Enviando:", filename);
 
       const { error } = await supabase.storage
         .from("videos")
@@ -66,27 +63,23 @@ export default function NovaCampanhaPage() {
         });
 
       if (error) {
-        console.error(`❌ Erro ao subir ${file.name}:`, error.message);
+        console.error(`Erro ao subir ${file.name}:`, error.message);
         return null;
       }
 
-      const { publicUrl } = supabase.storage
-        .from("videos")
-        .getPublicUrl(filename).data;
-
-      console.log("✅ Upload concluído:", publicUrl);
+      const { data } = supabase.storage.from("videos").getPublicUrl(filename);
 
       return {
         id: Date.now().toString() + Math.random(),
         nome: file.name,
-        arquivo: publicUrl,
+        arquivo: data.publicUrl,
       };
     });
 
     const videos = (await Promise.all(uploads)).filter(Boolean);
 
     if (videos.length === 0) {
-      alert("Erro ao subir os vídeos.");
+      alert("Erro ao subir os arquivos.");
       return;
     }
 
@@ -98,8 +91,6 @@ export default function NovaCampanhaPage() {
       data: new Date().toLocaleString("pt-BR"),
       videos,
     };
-
-    console.log("🎬 Salvando campanha:", nova);
 
     const lista = JSON.parse(localStorage.getItem("campanhas") || "[]");
     lista.push(nova);
@@ -145,7 +136,8 @@ export default function NovaCampanhaPage() {
         </FormControl>
 
         <Button variant="outlined" component="label">
-          {previewNome || "Selecionar arquivos (PNG, JPG, MP4, H264 - até 10MB)"}
+          {previewNome ||
+            "Selecionar arquivos (PNG, JPG, MP4, H264 - até 10MB)"}
           <input
             type="file"
             accept=".png,.jpg,.jpeg,.mp4,.h264"
@@ -158,10 +150,7 @@ export default function NovaCampanhaPage() {
         <Button
           type="submit"
           variant="contained"
-          sx={{
-            backgroundColor: "#1D7BBA",
-            ":hover": { backgroundColor: "#156b9c" },
-          }}
+          sx={{ backgroundColor: "#1D7BBA", ":hover": { backgroundColor: "#156b9c" } }}
         >
           Salvar
         </Button>
