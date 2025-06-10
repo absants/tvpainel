@@ -1,7 +1,6 @@
-// player.tsx - fallback para buscar vídeos direto do Supabase se ordemGlobal estiver ausente
+// player.tsx - removido o fallback para Supabase, usa apenas campanhas cadastradas
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "../lib/supabase";
 
 export default function PlayerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -10,51 +9,27 @@ export default function PlayerPage() {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
-    const loadVideos = async () => {
-      const ordem = JSON.parse(localStorage.getItem("ordemGlobal") || "null");
-      const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
+    const ordem = JSON.parse(localStorage.getItem("ordemGlobal") || "null");
+    const campanhas = JSON.parse(localStorage.getItem("campanhas") || "[]");
 
-      if (ordem) {
-        const todosVideosAtuais = campanhas.flatMap((c: any) =>
-          (c.videos || []).map((v: any) => v.arquivo)
-        );
+    if (ordem) {
+      const todosVideosAtuais = campanhas.flatMap((c: any) =>
+        (c.videos || []).map((v: any) => v.arquivo)
+      );
 
-        const ordemValida = ordem.filter((v: any) =>
-          todosVideosAtuais.includes(v.arquivo)
-        );
+      const ordemValida = ordem.filter((v: any) =>
+        todosVideosAtuais.includes(v.arquivo)
+      );
 
-        if (ordemValida.length === 0) {
-          localStorage.removeItem("ordemGlobal");
-          setVideos([]);
-        } else {
-          setVideos(ordemValida.map((v: any) => `${v.arquivo}?t=${Date.now()}`));
-        }
+      if (ordemValida.length === 0) {
+        localStorage.removeItem("ordemGlobal");
+        setVideos([]);
       } else {
-        // fallback: buscar do Supabase diretamente
-        const { data, error } = await supabase.storage.from("videos").list("", {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: "name", order: "asc" },
-        });
-
-        if (error || !data) {
-          console.error("Erro ao buscar vídeos do Supabase:", error);
-          setVideos([]);
-          return;
-        }
-
-        const urls = data
-          .filter((file) => file.name.endsWith(".mp4") || file.name.endsWith(".h264"))
-          .map((file) => {
-            const { data: publicUrlData } = supabase.storage.from("videos").getPublicUrl(file.name);
-            return `${publicUrlData.publicUrl}?t=${Date.now()}`;
-          });
-
-        setVideos(urls);
+        setVideos(ordemValida.map((v: any) => `${v.arquivo}?t=${Date.now()}`));
       }
-    };
-
-    loadVideos();
+    } else {
+      setVideos([]);
+    }
   }, []);
 
   useEffect(() => {
