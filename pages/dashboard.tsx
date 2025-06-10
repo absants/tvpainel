@@ -25,7 +25,7 @@ interface Campanha {
   cliente: string;
   nome: string;
   status: 'Ativa' | 'Inativa';
-  videos?: any[];
+  videos?: { nome: string; arquivo: string }[];
   data?: string;
 }
 
@@ -60,7 +60,6 @@ export default function Dashboard() {
 
     const listaAtual = JSON.parse(localStorage.getItem("campanhas") || "[]");
     const campanhaExcluida = listaAtual.find((c: any) => c.id === id);
-
     const atualizadas = listaAtual.filter((c: any) => c.id !== id);
     localStorage.setItem("campanhas", JSON.stringify(atualizadas));
     setCampanhas(atualizadas);
@@ -68,14 +67,30 @@ export default function Dashboard() {
     if (campanhaExcluida?.videos?.length > 0) {
       const arquivos = campanhaExcluida.videos.map((v: any) => v.arquivo);
 
-      const { error } = await supabase
+      // Remover da ordem_global
+      const { error: ordemError } = await supabase
         .from("ordem_global")
         .delete()
         .in("arquivo", arquivos);
 
-      if (error) {
-        console.error("Erro ao excluir vídeos do Supabase:", error);
-        alert("Campanha excluída localmente, mas houve erro ao remover vídeos do servidor.");
+      if (ordemError) {
+        console.error("Erro ao excluir vídeos do Supabase (ordem_global):", ordemError);
+        alert("Campanha excluída localmente, mas houve erro ao remover da ordem global.");
+      }
+
+      // Remover arquivos do storage
+      const arquivosParaDeletar = campanhaExcluida.videos.map((v: any) => {
+        const path = v.arquivo.split("/").pop()?.split("?")[0]; // remove timestamp ?t=
+        return path || "";
+      });
+
+      const { error: storageError } = await supabase.storage
+        .from("videos")
+        .remove(arquivosParaDeletar);
+
+      if (storageError) {
+        console.error("Erro ao remover arquivos do Storage:", storageError);
+        alert("Campanha excluída, mas houve erro ao remover os arquivos do servidor.");
       }
     }
 
