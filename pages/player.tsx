@@ -132,7 +132,7 @@ export default function PlayerPage() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: "60px",
+          height: "80px",
           backgroundColor: "#eae7e1", // cinza claro
           color: "#000",
           display: "flex",
